@@ -35,18 +35,32 @@ namespace Clip_it
 
             // Create window, GraphicsDevice, and all resources necessary for the demo.
             VeldridStartup.CreateWindowAndGraphicsDevice(
-                new WindowCreateInfo(50, 50, 1280, 720, WindowState.Normal, App.AppName),
+                new WindowCreateInfo(50, 50, 1280, 720, WindowState.BorderlessFullScreen, App.AppName),
                 new GraphicsDeviceOptions(false, null, true, ResourceBindingModel.Improved, true, true),
                 out _window,
                 out _gd);
             _window.BorderVisible = false;
 
-            // ESCで終了
+            // キー入力
             _window.KeyDown += (evt) =>
             {
+                // ESCで終了
                 if (evt.Key == Key.Escape)
                 {
                     _window.Close();
+                }
+                // タブで全体を半透明
+                if (evt.Key == Key.Tab)
+                {
+                    _window.Opacity = 0.5f;
+                }
+            };
+            _window.KeyUp += (evt) =>
+            {
+                // タブで全体を半透明解除
+                if (evt.Key == Key.Tab)
+                {
+                    _window.Opacity = 1.0f;
                 }
             };
 
@@ -57,6 +71,20 @@ namespace Clip_it
                 _controller.WindowResized(_window.Width, _window.Height);
             };
             _cl = _gd.ResourceFactory.CreateCommandList();
+
+            // ドラッグアンドドロップ
+            _window.DragDrop += (evt) =>
+            {
+                //var model = new FusenModel();
+                //model.Text = evt.File;
+                //fusens.Add(new Fusen(model));
+
+                //System.Diagnostics.Debug.WriteLine(evt.File);
+                //System.Diagnostics.Debug.WriteLine(ImGui.GetClipboardText());
+                //var payload = ImGui.GetDragDropPayload();
+                //System.Diagnostics.Debug.WriteLine(payload.ToString());
+            };
+
 
             // IMGUI制御
             _controller = new ImGuiController(_gd, _gd.MainSwapchain.Framebuffer.OutputDescription, _window.Width, _window.Height);
