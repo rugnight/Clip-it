@@ -183,6 +183,7 @@ namespace Clip_it
         // 内容更新通知
         public event Action<FusenModel> OnChangeText;
 
+        // コンストラクタ
         public FusenModel() 
             : this(Guid.NewGuid(), "")
         {
@@ -197,11 +198,13 @@ namespace Clip_it
             this._text = (text != null) ? text : "";
         }
 
+        // テキストに含まれるURLを取得
         public List<string> GetURLs()
         {
             return CollectURL(this.Text);
         }
 
+        // テキストに含まれるURLを取得
         static List<string> CollectURL(string text)
         {
             var result = new List<string>();
@@ -221,12 +224,6 @@ namespace Clip_it
     /// </summary>
     class FusenView
     {
-        enum State
-        {
-            NonEdit,
-            Edit,
-        };
-
         public bool visible = true;
         public bool Visible { get; set; } = true;
 
@@ -234,8 +231,11 @@ namespace Clip_it
         public event Action<string> OnSelectURL;
         public event Action OnClose;
 
-        State state = State.NonEdit;
-
+        /// <summary>
+        /// 表示
+        /// </summary>
+        /// <param name="fusen"></param>
+        /// <param name="model"></param>
         public void Disp(Fusen fusen, FusenModel model)
         {
             if (!visible)
@@ -255,15 +255,14 @@ namespace Clip_it
             ImGui.Spacing();
             DispCloseButton(fusen);
 
-            //if (!ImGui.IsItemFocused())
-            //{
-            //    state = State.NonEdit;
-            //}
-
             ImGui.End();
 
         }
 
+        /// <summary>
+        /// 本文の表示
+        /// </summary>
+        /// <param name="text"></param>
         void DispText(string text)
         {
             var style = ImGui.GetStyle();
@@ -272,23 +271,16 @@ namespace Clip_it
             var w = (ImGui.CalcTextSize(text).X * 1.0f) + (innerSpace.X * 2.0f) + (itemSpace.X * 2.0f);
             var h = (ImGui.CalcTextSize(text).Y * 1.0f) + (innerSpace.Y * 2.0f) + (itemSpace.Y * 2.0f) + 20.0f;
 
-            //if (state == State.Edit)
+            if (ImGui.InputTextMultiline("", ref text, 1024, new System.Numerics.Vector2(w, h), ImGuiInputTextFlags.None))
             {
-                if (ImGui.InputTextMultiline("", ref text, 1024, new System.Numerics.Vector2(w, h), ImGuiInputTextFlags.None))
-                {
-                    this.OnChangeText?.Invoke(text);
-                }
+                this.OnChangeText?.Invoke(text);
             }
-            //else
-            //{
-            //    ImGui.Text(text);//, ref text, 1024, new System.Numerics.Vector2(w, h), ImGuiInputTextFlags.ReadOnly))
-            //    if (ImGui.InvisibleButton(text, ImGui.GetItemRectSize()))
-            //    {
-            //        state = State.Edit;
-            //    }
-            //}
         }
 
+        /// <summary>
+        /// URLボタンの表示
+        /// </summary>
+        /// <param name="fusen"></param>
         void DispURLButtons(Fusen fusen)
         {
             // URLボタン
@@ -304,6 +296,11 @@ namespace Clip_it
                 ImGui.LabelText("", pair.Key);
             }
         }
+
+        /// <summary>
+        /// 閉じるボタンの表示
+        /// </summary>
+        /// <param name="fusen"></param>
         void DispCloseButton(Fusen fusen)
         {
             if (ImGui.Button("X"))
@@ -319,48 +316,57 @@ namespace Clip_it
     /// </summary>
     class Fusen
     {
-        FusenModel model;
-        FusenView view;
+        FusenModel _model;
+        FusenView _view;
 
-        public FusenModel Model => model;
+        public FusenModel Model => _model;
         public Dictionary<string, string> Urls { get; private set; } = new Dictionary<string, string>();
 
+        /// <summary>
+        /// コンストラクタ
+        /// </summary>
         public Fusen()
             : this(new FusenModel())
         {
         }
         public Fusen(FusenModel model) 
         {
-            this.model = model;
-            this.model.OnChangeText += (changedModel) =>
+            this._model = model;
+            this._model.OnChangeText += (changedModel) =>
             {
                 this.UpdateURLs();
             };
             this.UpdateURLs();
 
-            view = new FusenView();
-            view.OnChangeText += (changedText) =>
+            _view = new FusenView();
+            _view.OnChangeText += (changedText) =>
             {
-                this.model.Text = changedText;
+                this._model.Text = changedText;
             };
-            view.OnSelectURL += (url) =>
+            _view.OnSelectURL += (url) =>
             {
                 OpenURL(url);
             };
-            view.OnClose += () =>
+            _view.OnClose += () =>
             {
                 model.Deleted = true;
             };
         }
 
+        /// <summary>
+        /// 更新
+        /// </summary>
         public void Update()
         {
-            view.Disp(this, model);
+            _view.Disp(this, _model);
         }
 
+        /// <summary>
+        /// URLリストを更新
+        /// </summary>
         void UpdateURLs()
         {
-            var urls = this.model.GetURLs();
+            var urls = this._model.GetURLs();
             foreach (var url in urls)
             {
                 if (this.Urls.ContainsKey(url))
