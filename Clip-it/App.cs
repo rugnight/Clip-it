@@ -15,7 +15,7 @@ namespace Clip_it
         List<Fusen> fusens = new List<Fusen>();
 
         string DataDir { get => System.IO.Path.Combine(System.Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), AppName); }
-        string DbFilePath { get => System.IO.Path.Combine(DataDir, "fusen5.db"); }
+        string DbFilePath { get => System.IO.Path.Combine(DataDir, "fusen.db"); }
 
         public void Initialize()
         {

@@ -54,24 +54,18 @@ namespace Clip_it
             Debug.Assert(connection != null);
             if (connection == null) return;
 
-            var bExistsTable = false;
-
-            using (SQLiteCommand command = connection.CreateCommand())
+            try
             {
-                command.CommandText = "SELECT COUNT(*) FROM sqlite_master WHERE TYPE = 'table' AND name = 't_fusen'";
-                var reader = command.ExecuteReader();
-                bExistsTable = (0 < reader.FieldCount);
+                using (SQLiteCommand command = connection.CreateCommand())
+                {
+                    //command.CommandText = "create table t_product(id INTEGER  PRIMARY KEY AUTOINCREMENT, text TEXT)";
+                    command.CommandText = "create table t_fusen(id TEXT PRIMARY KEY, text TEXT, price INTEGER)";
+                    command.ExecuteNonQuery();
+                }
             }
-            if (bExistsTable)
+            catch(Exception e)
             {
-                return;
-            }
-
-            using (SQLiteCommand command = connection.CreateCommand())
-            {
-                //command.CommandText = "create table t_product(id INTEGER  PRIMARY KEY AUTOINCREMENT, text TEXT)";
-                command.CommandText = "create table t_fusen(id TEXT PRIMARY KEY, text TEXT, price INTEGER)";
-                command.ExecuteNonQuery();
+                Console.WriteLine(e.Message);
             }
         }
 
