@@ -85,15 +85,25 @@ namespace Clip_it
                 SQLiteCommand cmd = connection.CreateCommand();
                 foreach (var model in models)
                 {
-                    // インサート
-                    cmd.CommandText = "REPLACE INTO t_fusen (id, text) VALUES (@Id, @Text)";
-                    // パラメータセット
-                    cmd.Parameters.Add("Id", System.Data.DbType.String);
-                    cmd.Parameters.Add("Text", System.Data.DbType.String);
-                    // データ追加
-                    cmd.Parameters["Id"].Value = model.Id.ToString();
-                    cmd.Parameters["Text"].Value = model.Text;
+                    // 削除済み
+                    if (model.Deleted)
+                    {
+                        // デリート
+                        cmd.CommandText = $"DELETE FROM t_fusen WHERE id = '{model.Id.ToString()}'";
+                    }
+                    else
+                    { 
+                        // インサート
+                        cmd.CommandText = "REPLACE INTO t_fusen (id, text) VALUES (@Id, @Text)";
+                        // パラメータセット
+                        cmd.Parameters.Add("Id", System.Data.DbType.String);
+                        cmd.Parameters.Add("Text", System.Data.DbType.String);
+                        // データ追加
+                        cmd.Parameters["Id"].Value = model.Id.ToString();
+                        cmd.Parameters["Text"].Value = model.Text;
+                    }
                     cmd.ExecuteNonQuery();
+
                 }
                 // コミット
                 trans.Commit();
@@ -168,6 +178,8 @@ namespace Clip_it
             }
         }
 
+        public bool Deleted { get; set; } = false;
+
         // 内容更新通知
         public event Action<FusenModel> OnChangeText;
 
@@ -220,6 +232,7 @@ namespace Clip_it
 
         public event Action<string> OnChangeText;
         public event Action<string> OnSelectURL;
+        public event Action OnClose;
 
         State state = State.NonEdit;
 
@@ -240,7 +253,7 @@ namespace Clip_it
             DispURLButtons(fusen);
 
             ImGui.Spacing();
-            DispCloseButton();
+            DispCloseButton(fusen);
 
             //if (!ImGui.IsItemFocused())
             //{
@@ -291,11 +304,12 @@ namespace Clip_it
                 ImGui.LabelText("", pair.Key);
             }
         }
-        void DispCloseButton()
+        void DispCloseButton(Fusen fusen)
         {
             if (ImGui.Button("X"))
             {
                 visible = false;
+                OnClose?.Invoke();
             }
         }
     };
@@ -332,6 +346,10 @@ namespace Clip_it
             view.OnSelectURL += (url) =>
             {
                 OpenURL(url);
+            };
+            view.OnClose += () =>
+            {
+                model.Deleted = true;
             };
         }
 
