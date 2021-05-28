@@ -204,6 +204,12 @@ namespace Clip_it
             return CllectPath(this.Text);
         }
 
+        // テキストに含まれる日付を取得
+        public List<string> GetDates()
+        {
+            return CollectDate(this.Text);
+        }
+
         // テキストに含まれるURLを取得
         static List<string> CollectURL(string text)
         {
@@ -225,6 +231,39 @@ namespace Clip_it
             var result = new List<string>();
 
             var reg = new Regex(@"(?:(?:(?:\b[a-z]:|\\\\[a-z0-9_.$]+\\[a-z0-9_.$]+)\\|\\?[^\\/:*?""<>|\r\n]+\\?)(?:[^\\/:*?""<>|\r\n]+\\)*[^\\/:*?""<>|\r\n]*)", RegexOptions.IgnoreCase | RegexOptions.IgnorePatternWhitespace);
+            foreach (Match match in reg.Matches(text))
+            {
+                result.Add(match.Value);
+            }
+
+            return result;
+        }
+
+        /// <summary>
+        /// テキストに含まれる日付を取得
+        /// </summary>
+        /// <param name="text"></param>
+        /// <returns></returns>
+        static List<string> CollectDate(string text)
+        {
+            var result = new List<string>();
+
+            // 2021-05-29 00:00
+            var reg = new Regex(@"(\d{4}-\d{1,2}-\d{1,2}\s\d{2}:\d{2})|(\d{4}-\d{1,2}-\d{1,2})");
+            foreach (Match match in reg.Matches(text))
+            {
+                result.Add(match.Value);
+            }
+
+            // 2021/05/29
+            reg = new Regex(@"\d{4}/\d{1,2}/\d{1,2}");
+            foreach (Match match in reg.Matches(text))
+            {
+                result.Add(match.Value);
+            }
+
+            // 2021年5月29日
+            reg = new Regex(@"\d{4}年\d{1,2}月\d{1,2}日");
             foreach (Match match in reg.Matches(text))
             {
                 result.Add(match.Value);
@@ -271,6 +310,9 @@ namespace Clip_it
 
             ImGui.Spacing();
             DispPathButtons(fusen);
+
+            ImGui.Spacing();
+            DispDateButtons(fusen);
 
             ImGui.Spacing();
             DispCloseButton(fusen);
@@ -337,6 +379,28 @@ namespace Clip_it
         }
 
         /// <summary>
+        /// 日付ボタンを表示
+        /// </summary>
+        /// <param name="fusen"></param>
+        void DispDateButtons(Fusen fusen)
+        {
+            var changed = new List<string>();
+            foreach (var pair in fusen.Dates)
+            {
+                // 日付
+                bool bOn = pair.Value;
+                if (ImGui.Checkbox(pair.Key, ref bOn))
+                {
+                    changed.Add(pair.Key);
+                }
+            }
+            foreach (var key in changed)
+            {
+                fusen.Dates[key] = !fusen.Dates[key];
+            }
+        }
+
+        /// <summary>
         /// 閉じるボタンの表示
         /// </summary>
         /// <param name="fusen"></param>
@@ -362,7 +426,7 @@ namespace Clip_it
         public Dictionary<string, string> Urls { get; private set; } = new Dictionary<string, string>();
 
         public Dictionary<string, string> Paths { get; private set; } = new Dictionary<string, string>();
-
+        public Dictionary<string, bool> Dates { get; private set; } = new Dictionary<string, bool>();
         /// <summary>
         /// コンストラクタ
         /// </summary>
@@ -412,6 +476,17 @@ namespace Clip_it
         /// </summary>
         void UpdateMetaData()
         {
+            // 時刻
+            var dates = this._model.GetDates();
+            foreach (var date in dates)
+            {
+                if (this.Dates.ContainsKey(date))
+                {
+                    continue;
+                }
+                this.Dates[date] = false;
+            }
+
             // ファイルパス
             var paths = this.Model.GetPaths();
             foreach (var path in paths)
