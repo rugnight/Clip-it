@@ -17,7 +17,6 @@ namespace Clip_it
 
         public FusenModel Model => _model;
         public Dictionary<string, string> Urls { get; private set; } = new Dictionary<string, string>();
-
         public Dictionary<string, string> Paths { get; private set; } = new Dictionary<string, string>();
         public Dictionary<string, bool> Dates { get; private set; } = new Dictionary<string, bool>();
         /// <summary>
