@@ -175,7 +175,7 @@ namespace Clip_it
                 }
                 else
                 {
-                    title = "404";
+                    title = "";
                 }
             }
 

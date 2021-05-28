@@ -34,6 +34,10 @@ namespace Clip_it
             }
         }
 
+        // 折りたたみ済み
+        public bool Opened = true;
+
+        // 削除済み
         public bool Deleted { get; set; } = false;
 
         // 内容更新通知

@@ -33,7 +33,7 @@ namespace Clip_it
             var windowsFlags = ImGuiWindowFlags.MenuBar | ImGuiWindowFlags.NoTitleBar | ImGuiWindowFlags.AlwaysAutoResize;
             ImGui.Begin(model.Id.ToString(), ref visible, windowsFlags);
 
-            DispText(text);
+            DispText(model);
 
             ImGui.Spacing();
             DispURLButtons(fusen);
@@ -55,17 +55,23 @@ namespace Clip_it
         /// 本文の表示
         /// </summary>
         /// <param name="text"></param>
-        void DispText(string text)
+        void DispText(FusenModel model)
         {
+            var text = model.Text;
             var style = ImGui.GetStyle();
             var innerSpace = style.ItemInnerSpacing;
             var itemSpace = style.ItemSpacing;
             var w = (ImGui.CalcTextSize(text).X * 1.0f) + (innerSpace.X * 2.0f) + (itemSpace.X * 2.0f);
             var h = (ImGui.CalcTextSize(text).Y * 1.0f) + (innerSpace.Y * 2.0f) + (itemSpace.Y * 2.0f) + 20.0f;
 
-            if (ImGui.InputTextMultiline("", ref text, 1024, new System.Numerics.Vector2(w, h), ImGuiInputTextFlags.None))
+            // 折りたたみ
+            //ImGui.SetNextWindowCollapsed(model.Opened);
+            //if (ImGui.CollapsingHeader(text.Substring(0, Math.Min(30, text.Length))))
             {
-                this.OnChangeText?.Invoke(text);
+                if (ImGui.InputTextMultiline("", ref text, 1024, new System.Numerics.Vector2(w, h), ImGuiInputTextFlags.None))
+                {
+                    this.OnChangeText?.Invoke(text);
+                }
             }
         }
 
@@ -78,14 +84,16 @@ namespace Clip_it
             // URLボタン
             foreach (var pair in fusen.Urls)
             {
+                var title = string.IsNullOrEmpty(pair.Value) ? pair.Key : pair.Value;
+
                 // タイトル
-                if (ImGui.Button(pair.Value))
+                if (ImGui.Button(title))
                 {
                     this.OnSelectURL?.Invoke(pair.Key);
                 }
-                ImGui.SameLine();
+                //ImGui.SameLine();
                 // URL
-                ImGui.LabelText("", pair.Key);
+                //ImGui.LabelText("", pair.Key);
             }
         }
 
@@ -97,14 +105,16 @@ namespace Clip_it
         {
             foreach (var pair in fusen.Paths)
             {
+                var title = string.IsNullOrEmpty(pair.Value) ? pair.Key : pair.Value;
+
                 // タイトル
-                if (ImGui.Button(pair.Value))
+                if (ImGui.Button(title))
                 {
                     this.OnSelectPath?.Invoke(pair.Key);
                 }
-                ImGui.SameLine();
+                //ImGui.SameLine();
                 // パス
-                ImGui.LabelText("", pair.Key);
+                //ImGui.LabelText("", pair.Key);
             }
         }
 
