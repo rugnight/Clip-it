@@ -1,15 +1,9 @@
 ﻿using System;
-using System.Diagnostics;
-using System.Text.RegularExpressions;
 using System.Collections.Generic;
-using ImGuiNET;
 using System.Net.Http;
 using AngleSharp.Html.Dom;
 using AngleSharp.Html.Parser;
 using System.Threading.Tasks;
-using System.Data.SQLite;
-using System.Linq;
-using System.Linq.Expressions;
 
 namespace Clip_it
 {
