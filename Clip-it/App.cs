@@ -54,9 +54,14 @@ namespace Clip_it
                 // CTRL+Vで付箋作成
                 if (ImGui.IsWindowFocused())
                 {
-                    var model = new FusenModel();
-                    model.Text = ImGui.GetClipboardText();
-                    fusens.Add(new Fusen(model));
+                    var clipText = ImGui.GetClipboardText();
+
+                    if (clipText != null)
+                    {
+                        var model = new FusenModel();
+                        model.Text = clipText;
+                        fusens.Add(new Fusen(model));
+                    }
                 }
             }
 
