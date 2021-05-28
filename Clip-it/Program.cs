@@ -39,6 +39,8 @@ namespace Clip_it
                 new GraphicsDeviceOptions(false, null, true, ResourceBindingModel.Improved, true, true),
                 out _window,
                 out _gd);
+            _cl = _gd.ResourceFactory.CreateCommandList();
+
             _window.BorderVisible = false;
 
             // キー入力
@@ -70,11 +72,11 @@ namespace Clip_it
                 _gd.MainSwapchain.Resize((uint)_window.Width, (uint)_window.Height);
                 _controller.WindowResized(_window.Width, _window.Height);
             };
-            _cl = _gd.ResourceFactory.CreateCommandList();
 
             // ドラッグアンドドロップ
             _window.DragDrop += (evt) =>
             {
+                app.OnDropItem(evt.File);
                 //var model = new FusenModel();
                 //model.Text = evt.File;
                 //fusens.Add(new Fusen(model));

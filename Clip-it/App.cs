@@ -77,5 +77,12 @@ namespace Clip_it
                 fusen.Update();
             }
         }
+
+        public void OnDropItem(string dropFile)
+        {
+            var model = new FusenModel();
+            model.Text = dropFile;
+            fusens.Add(new Fusen(model));
+        }
     }
 }

@@ -198,6 +198,12 @@ namespace Clip_it
             return CollectURL(this.Text);
         }
 
+        // テキストに含まれるパスを取得
+        public List<string> GetPaths()
+        {
+            return CllectPath(this.Text);
+        }
+
         // テキストに含まれるURLを取得
         static List<string> CollectURL(string text)
         {
@@ -211,6 +217,22 @@ namespace Clip_it
 
             return result;
         }
+
+        // テキストに含まれるファイルパスを取得
+
+        static List<string> CllectPath(string text)
+        {
+            var result = new List<string>();
+
+            var reg = new Regex(@"(?:(?:(?:\b[a-z]:|\\\\[a-z0-9_.$]+\\[a-z0-9_.$]+)\\|\\?[^\\/:*?""<>|\r\n]+\\?)(?:[^\\/:*?""<>|\r\n]+\\)*[^\\/:*?""<>|\r\n]*)", RegexOptions.IgnoreCase | RegexOptions.IgnorePatternWhitespace);
+            foreach (Match match in reg.Matches(text))
+            {
+                result.Add(match.Value);
+            }
+
+            return result;
+        }
+
     };
 
     /// <summary>
@@ -223,6 +245,7 @@ namespace Clip_it
 
         public event Action<string> OnChangeText;
         public event Action<string> OnSelectURL;
+        public event Action<string> OnSelectPath;
         public event Action OnClose;
 
         /// <summary>
@@ -245,6 +268,9 @@ namespace Clip_it
 
             ImGui.Spacing();
             DispURLButtons(fusen);
+
+            ImGui.Spacing();
+            DispPathButtons(fusen);
 
             ImGui.Spacing();
             DispCloseButton(fusen);
@@ -292,6 +318,25 @@ namespace Clip_it
         }
 
         /// <summary>
+        /// パスボタンを表示
+        /// </summary>
+        /// <param name="fusen"></param>
+        void DispPathButtons(Fusen fusen)
+        {
+            foreach (var pair in fusen.Paths)
+            {
+                // タイトル
+                if (ImGui.Button(pair.Value))
+                {
+                    this.OnSelectPath?.Invoke(pair.Key);
+                }
+                ImGui.SameLine();
+                // パス
+                ImGui.LabelText("", pair.Key);
+            }
+        }
+
+        /// <summary>
         /// 閉じるボタンの表示
         /// </summary>
         /// <param name="fusen"></param>
@@ -316,6 +361,8 @@ namespace Clip_it
         public FusenModel Model => _model;
         public Dictionary<string, string> Urls { get; private set; } = new Dictionary<string, string>();
 
+        public Dictionary<string, string> Paths { get; private set; } = new Dictionary<string, string>();
+
         /// <summary>
         /// コンストラクタ
         /// </summary>
@@ -328,9 +375,9 @@ namespace Clip_it
             this._model = model;
             this._model.OnChangeText += (changedModel) =>
             {
-                this.UpdateURLs();
+                this.UpdateMetaData();
             };
-            this.UpdateURLs();
+            this.UpdateMetaData();
 
             _view = new FusenView();
             _view.OnChangeText += (changedText) =>
@@ -341,6 +388,11 @@ namespace Clip_it
             {
                 OpenURL(url);
             };
+            _view.OnSelectPath += (path) =>
+            {
+                OpenPath(path);
+            };
+            
             _view.OnClose += () =>
             {
                 model.Deleted = true;
@@ -358,8 +410,34 @@ namespace Clip_it
         /// <summary>
         /// URLリストを更新
         /// </summary>
-        void UpdateURLs()
+        void UpdateMetaData()
         {
+            // ファイルパス
+            var paths = this.Model.GetPaths();
+            foreach (var path in paths)
+            {
+                var item = "";
+                if (System.IO.File.Exists(path))
+                {
+                    item = System.IO.Path.GetFileName(path);
+                }
+                else if (System.IO.Directory.Exists(path))
+                {
+                    item = System.IO.Path.GetDirectoryName(path);
+                }
+                else
+                {
+                    continue;
+                }
+
+                if (this.Paths.ContainsKey(path))
+                {
+                    continue;
+                }
+                this.Paths[path] = item;
+            }
+
+            // URL
             var urls = this._model.GetURLs();
             foreach (var url in urls)
             {
@@ -383,6 +461,18 @@ namespace Clip_it
             var psi = new System.Diagnostics.ProcessStartInfo();
             psi.UseShellExecute = true;
             psi.FileName = url;
+            System.Diagnostics.Process.Start(psi);
+        }
+
+        /// <summary>
+        /// パスを開く
+        /// </summary>
+        /// <param name="path"></param>
+        static void OpenPath(string path)
+        {
+            var psi = new System.Diagnostics.ProcessStartInfo();
+            psi.UseShellExecute = true;
+            psi.FileName = path;
             System.Diagnostics.Process.Start(psi);
         }
 
