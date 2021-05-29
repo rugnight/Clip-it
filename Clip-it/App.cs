@@ -141,6 +141,39 @@ namespace Clip_it
         /// </summary>
         void FusenSortUpdate()
         {
+            fusens.Sort((a, b) => (int)(a.LastSize.Y - b.LastSize.Y));
+
+            float padX = 10;
+            float padY = 10;
+            float maxH = 0;
+            float x = padX;
+            float y = 30.0f + padY;
+            for(int i = 0; i < fusens.Count; ++i)
+            {
+                var fusen = fusens[i];
+                var nextW = (i <= fusens.Count) ? fusens[i].LastSize.X : 0.0f;
+
+                ImGui.SetNextWindowPos(new Vector2(x, y));
+
+                // 削除済みの場合は無視
+                if (!fusen.Update())
+                {
+                    continue;
+                }
+
+                x += fusen.LastSize.X + padX;
+                maxH = (maxH < fusen.LastSize.Y) ? fusen.LastSize.Y : maxH;
+
+                if (_windowSize.X < (x + nextW))
+                {
+                    x = padX;
+                    y = y + maxH + padY;
+                    maxH = 0.0f;
+                }
+
+            }
+
+#if false
             int cnt = 0;
             int colNum = 3;
             float padX = 10;
@@ -156,16 +189,28 @@ namespace Clip_it
 
                 fusen.Update();
 
-                if (colIdx == colNum - 1)
+                x += fusen.LastSize.X + padX;
+                if (_windowSize.X < x)
                 {
                     x = padX;
                 }
-                else
-                {
-                    x += fusen.LastSize.X + padX;
-                }
                 colStartY[colIdx] += fusen.LastSize.Y + padY;
                 cnt++;
+            }
+#endif
+        }
+
+        /// <summary>
+        /// 削除フラグのたった付箋を削除する
+        /// </summary>
+        public void DeleteClosedFusens()
+        {
+            for (int i = fusens.Count - 1; 0 <= i; --i)
+            {
+                if (fusens[i].Model.Deleted)
+                {
+                    fusens.RemoveAt(i);
+                }
             }
         }
 

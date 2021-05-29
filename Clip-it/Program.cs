@@ -1,19 +1,9 @@
-﻿using System;
-using System.Linq;
-using System.Text.RegularExpressions;
-using System.Numerics;
+﻿using System.Numerics;
 using System.Collections.Generic;
 using Veldrid;
 using Veldrid.Sdl2;
 using Veldrid.StartupUtilities;
-using AngleSharp;
 using ImGuiNET;
-using static ImGuiNET.ImGuiNative;
-using System.Net.Http;
-using AngleSharp.Html.Dom;
-using AngleSharp.Html.Parser;
-using System.Threading.Tasks;
-using System.Runtime.InteropServices;
 
 namespace Clip_it
 {
@@ -46,10 +36,9 @@ namespace Clip_it
             // キー入力
             _window.KeyDown += (evt) =>
             {
-                // ESCで終了
+                // ESCで非表示
                 if (evt.Key == Key.Escape)
                 {
-                    //_window.Close();
                     _window.Visible = false;
                 }
                 // タブで全体を半透明
@@ -115,7 +104,6 @@ namespace Clip_it
 
             // アプリケーション終了
             app.Terminate();
-
 
             // Clean up Veldrid resources
             _gd.WaitForIdle();

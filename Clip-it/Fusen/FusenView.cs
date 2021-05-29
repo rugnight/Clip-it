@@ -10,7 +10,7 @@ namespace Clip_it
     /// </summary>
     class FusenView
     {
-        const float INPUT_WIDTH = 300.0f;
+        const float INPUT_WIDTH = 350.0f;
         readonly Vector2 BUTTON_SIZE = new Vector2(INPUT_WIDTH, 20.0f);
 
         bool _fucusedInputText = false;
@@ -39,7 +39,7 @@ namespace Clip_it
 
             var model = fusen.Model;
             var text = model.Text;
-            var windowsFlags = /*ImGuiWindowFlags.MenuBar | ImGuiWindowFlags.NoTitleBar | */ ImGuiWindowFlags.AlwaysAutoResize;
+            var windowsFlags = /*ImGuiWindowFlags.MenuBar | ImGuiWindowFlags.NoTitleBar | ImGuiWindowFlags.AlwaysAutoResize*/  ImGuiWindowFlags.AlwaysAutoResize;
 
             // 大量のスペースはタイトルバーにIDを表示しないため
             // 改行は ini ファイルが機能しなくなるため入れてはいけない
@@ -84,13 +84,16 @@ namespace Clip_it
             var innerSpace = style.ItemInnerSpacing;
             var itemSpace = style.ItemSpacing;
             //var w = (ImGui.CalcTextSize(text).X * 1.0f) + (innerSpace.X * 2.0f) + (itemSpace.X * 2.0f);
-            var h = (ImGui.CalcTextSize(text).Y * 1.0f) + (innerSpace.Y * 1.0f) + (itemSpace.Y * 1.0f) + 20.0f;
+            //var w = lastSize.X;
+            var w = INPUT_WIDTH;
+            var h = (ImGui.CalcTextSize(text).Y * 1.0f) + (innerSpace.Y * 1.0f) + (itemSpace.Y * 1.0f) + 30.0f;
 
             if (ImGui.InputTextMultiline(
                 "",
                 ref text,
                 1024,
-                new System.Numerics.Vector2(INPUT_WIDTH, h),
+                new System.Numerics.Vector2(w, h),
+                //new System.Numerics.Vector2(INPUT_WIDTH, h),
                 ImGuiInputTextFlags.None
                 ))
             {

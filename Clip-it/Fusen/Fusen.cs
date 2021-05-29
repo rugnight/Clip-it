@@ -65,9 +65,16 @@ namespace Clip_it
         /// <summary>
         /// 更新
         /// </summary>
-        public void Update()
+        public bool Update()
         {
+            // 削除済みは処理しない
+            if (this._model.Deleted)
+            {
+                return false;
+            }
+            // 表示
             _view.Disp(this);
+            return true;
         }
 
         /// <summary>
