@@ -58,8 +58,16 @@ namespace Clip_it
             {
                 if (ImGui.MenuItem("New"))
                 {
+                    fusens.Add(new Fusen(new FusenModel()));
+                }
+                if (ImGui.MenuItem("FreeLayout"))
+                {
+                }
+                if (ImGui.MenuItem("Scedules"))
+                {
                 }
             }
+
 
             var io = ImGui.GetIO();
             if (io.KeyCtrl && ImGui.IsKeyPressed((int)Key.V, false))
@@ -77,11 +85,6 @@ namespace Clip_it
                     }
                 }
             }
-
-            //if (ImGui.Button("Add Fusen"))
-            //{
-            //    fusens.Add(new Fusen());
-            //}
 
             foreach (var fusen in fusens)
             {

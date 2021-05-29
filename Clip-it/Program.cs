@@ -41,6 +41,7 @@ namespace Clip_it
                 out _gd);
             _cl = _gd.ResourceFactory.CreateCommandList();
 
+
             _window.BorderVisible = false;
 
             // キー入力
