@@ -18,7 +18,7 @@ namespace Clip_it
 
         public FusenModel Model => _model;
         public Vector2 LastSize => _view.LastSize;
-        public Dictionary<string, string> Urls { get; private set; } = new Dictionary<string, string>();
+        public Dictionary<string, LinkModel> Urls { get; private set; } = new Dictionary<string, LinkModel>();
         public Dictionary<string, string> Paths { get; private set; } = new Dictionary<string, string>();
         public Dictionary<string, bool> Dates { get; private set; } = new Dictionary<string, bool>();
 
@@ -143,10 +143,10 @@ namespace Clip_it
                 {
                     continue;
                 }
-                this.Urls[url] = "";    // とりあえず空の結果だけ用意する
+                this.Urls[url] = new LinkModel(url, "");
 
                 // 非同期通信でタイトル取得
-                this.Urls[url] = GetURLTitle(url).Result;
+                this.Urls[url].Title = GetURLTitle(url).Result;
             }
         }
 

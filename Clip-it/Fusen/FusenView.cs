@@ -180,12 +180,12 @@ namespace Clip_it
             // URLボタン
             foreach (var pair in fusen.Urls)
             {
-                var title = string.IsNullOrEmpty(pair.Value) ? pair.Key : pair.Value;
+                var title = string.IsNullOrEmpty(pair.Value.Title) ? pair.Value.Link : pair.Value.Title;
 
                 // タイトル
                 if (ImGui.Button(title, BUTTON_SIZE))
                 {
-                    this.OnSelectURL?.Invoke(pair.Key);
+                    this.OnSelectURL?.Invoke(pair.Value.Link);
                 }
             }
         }
