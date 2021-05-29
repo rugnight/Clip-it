@@ -52,7 +52,7 @@ namespace Clip_it
                 using (SQLiteCommand command = connection.CreateCommand())
                 {
                     //command.CommandText = "create table t_product(id INTEGER  PRIMARY KEY AUTOINCREMENT, text TEXT)";
-                    command.CommandText = "create table t_fusen(id TEXT PRIMARY KEY, text TEXT, opened TEXT, price INTEGER)";
+                    command.CommandText = "create table t_fusen(id TEXT PRIMARY KEY, text TEXT, opened TEXT, opened_text TEXT)";
                     command.ExecuteNonQuery();
                 }
             }
@@ -81,15 +81,17 @@ namespace Clip_it
                     else
                     { 
                         // インサート
-                        cmd.CommandText = "REPLACE INTO t_fusen (id, text, opened) VALUES (@Id, @Text, @Opened)";
+                        cmd.CommandText = "REPLACE INTO t_fusen (id, text, opened, opened_text) VALUES (@Id, @Text, @Opened, @Opened_Text)";
                         // パラメータセット
                         cmd.Parameters.Add("Id", System.Data.DbType.String);
                         cmd.Parameters.Add("Text", System.Data.DbType.String);
                         cmd.Parameters.Add("Opened", System.Data.DbType.String);
+                        cmd.Parameters.Add("Opened_Text", System.Data.DbType.String);
                         // データ追加
                         cmd.Parameters["Id"].Value = model.Id.ToString();
                         cmd.Parameters["Text"].Value = model.Text;
                         cmd.Parameters["Opened"].Value = model.Opened.ToString();
+                        cmd.Parameters["Opened_Text"].Value = model.OpenedText.ToString();
                     }
                     cmd.ExecuteNonQuery();
 
@@ -118,6 +120,7 @@ namespace Clip_it
                         reader["Text"].ToString()
                         );
                     model.Opened = bool.Parse(reader["Opened"].ToString());
+                    model.OpenedText = bool.Parse(reader["Opened_Text"].ToString());
                     result.Add(model);
                 }
             }

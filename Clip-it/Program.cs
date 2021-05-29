@@ -7,25 +7,30 @@ using ImGuiNET;
 
 namespace Clip_it
 {
-    class Program
+    class Program : IAppEventHandler
     {
-        static App app = new App();
-        static List<Fusen> fusens = new List<Fusen>();
-
-        private static Sdl2Window _window;
-        private static GraphicsDevice _gd;
-        private static CommandList _cl;
-        private static ImGuiController _controller;
+        App _app = new App();
+        Sdl2Window _window;
+        GraphicsDevice _gd;
+        CommandList _cl;
+        ImGuiController _controller;
 
         // UI state
-        private static Vector3 _clearColor = new Vector3(0.2f, 0.2f, 0.2f);
+        private Vector3 _clearColor = new Vector3(0.2f, 0.2f, 0.2f);
 
+        // エントリポイント
         static void Main(string[] args)
         {
+            var main = new Program();
+            main.Run();
+        }
 
+        // 処理の実行
+        void Run()
+        { 
             // Create window, GraphicsDevice, and all resources necessary for the demo.
             VeldridStartup.CreateWindowAndGraphicsDevice(
-                new WindowCreateInfo(50, 50, 1280, 720, WindowState.BorderlessFullScreen, App.AppName),
+                new WindowCreateInfo(50, 50, 1280, 720, WindowState.Normal, App.AppName),
                 new GraphicsDeviceOptions(false, null, true, ResourceBindingModel.Improved, true, true),
                 out _window,
                 out _gd);
@@ -66,7 +71,7 @@ namespace Clip_it
             // ドラッグアンドドロップ
             _window.DragDrop += (evt) =>
             {
-                app.OnDropItem(evt.File);
+                _app.OnDropItem(evt.File);
             };
 
 
@@ -74,7 +79,7 @@ namespace Clip_it
             _controller = new ImGuiController(_gd, _gd.MainSwapchain.Framebuffer.OutputDescription, _window.Width, _window.Height);
 
             // アプリケーション初期化
-            app.Initialize(new Vector2(_window.Width, _window.Height));
+            _app.Initialize(new Vector2(_window.Width, _window.Height), this);
 
             // Main application loop
             while (_window.Exists)
@@ -88,7 +93,7 @@ namespace Clip_it
                 _controller.Update(1f / 60f, snapshot); // Feed the input events to our ImGui controller, which passes them through to ImGui.
 
                 // アプリケーション処理
-                if (!app.Update())
+                if (!_app.Update())
                 {
                     _window.Close();
                 }
@@ -103,7 +108,7 @@ namespace Clip_it
             }
 
             // アプリケーション終了
-            app.Terminate();
+            _app.Terminate();
 
             // Clean up Veldrid resources
             _gd.WaitForIdle();
@@ -111,5 +116,11 @@ namespace Clip_it
             _cl.Dispose();
             _gd.Dispose();
         }
-};
+
+        // 隠すボタンが押されたときの処理
+        public void OnPushHide()
+        {
+            _window.Visible = false;
+        }
+    }
 }

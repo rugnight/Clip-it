@@ -79,34 +79,42 @@ namespace Clip_it
         /// <param name="text"></param>
         void DispText(FusenModel model)
         {
-            var text = model.Text;
-            var style = ImGui.GetStyle();
-            var innerSpace = style.ItemInnerSpacing;
-            var itemSpace = style.ItemSpacing;
-            //var w = (ImGui.CalcTextSize(text).X * 1.0f) + (innerSpace.X * 2.0f) + (itemSpace.X * 2.0f);
-            //var w = lastSize.X;
-            var w = INPUT_WIDTH;
-            var h = (ImGui.CalcTextSize(text).Y * 1.0f) + (innerSpace.Y * 1.0f) + (itemSpace.Y * 1.0f) + 30.0f;
-
-            if (ImGui.InputTextMultiline(
-                "",
-                ref text,
-                1024,
-                new System.Numerics.Vector2(w, h),
-                //new System.Numerics.Vector2(INPUT_WIDTH, h),
-                ImGuiInputTextFlags.None
-                ))
+            var flags = ImGuiTreeNodeFlags.Bullet;
+            // 初回起動時に前回の開閉状態を再現する
+            if (model.OpenedText) 
             {
-                this.OnChangeText?.Invoke(text);
+                flags |= ImGuiTreeNodeFlags.DefaultOpen;
             }
 
-            // フォーカス状態の監視
-            if (ImGui.IsItemDeactivatedAfterEdit())
+            // 開閉状態を保存する
+            model.OpenedText = ImGui.CollapsingHeader("Memo", flags);
+            if (model.OpenedText)
             {
-                OnChangeAndEditEnd?.Invoke();
-                _fucusedInputText = ImGui.IsItemFocused();
-            }
+                var text = model.Text;
+                var style = ImGui.GetStyle();
+                var innerSpace = style.ItemInnerSpacing;
+                var itemSpace = style.ItemSpacing;
+                var w = INPUT_WIDTH;
+                var h = (ImGui.CalcTextSize(text).Y * 1.0f) + (innerSpace.Y * 1.0f) + (itemSpace.Y * 1.0f) + 30.0f;
 
+                if (ImGui.InputTextMultiline(
+                    "",
+                    ref text,
+                    1024,
+                    new System.Numerics.Vector2(w, h),
+                    ImGuiInputTextFlags.None
+                    ))
+                {
+                    this.OnChangeText?.Invoke(text);
+                }
+
+                // フォーカス状態の監視
+                if (ImGui.IsItemDeactivatedAfterEdit())
+                {
+                    OnChangeAndEditEnd?.Invoke();
+                    _fucusedInputText = ImGui.IsItemFocused();
+                }
+            }
         }
 
         /// <summary>

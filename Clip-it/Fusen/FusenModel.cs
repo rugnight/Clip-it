@@ -34,8 +34,11 @@ namespace Clip_it
             }
         }
 
-        // 折りたたみ済み
+        // 折りたたみ状態
         public bool Opened = true;
+
+        // テキスト折りたたみ状態
+        public bool OpenedText = true;
 
         // ポジション
         public float X = 0.0f;

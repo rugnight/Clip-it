@@ -8,14 +8,26 @@ using System.Numerics;
 
 namespace Clip_it
 {
+
+    // アプリケーションイベントを外部へ通知するハンドラ
+    interface IAppEventHandler
+    {
+        void OnPushHide();
+    }
+
+    // アプリケーション本体
     class App
     {
         // アプリ名
         public const string AppName = "Clip-it";
 
+        // 隠すボタンが押された
+        public event Action OnPushHideButton;
+
         FusenDB db = new FusenDB();
         List<Fusen> fusens = new List<Fusen>();
         Vector2 _windowSize;
+        IAppEventHandler _appEventHandler;
 
         // データ保存先ディレクトリ
         string DataDir { get => System.IO.Path.Combine(System.Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), AppName); }
@@ -26,9 +38,10 @@ namespace Clip_it
         // IMGUIの保存情報ファイル
         string IniFilePath { get => System.IO.Path.Combine(DataDir, "imgui.ini"); }
 
-        public void Initialize(Vector2 windowSize)
+        public void Initialize(Vector2 windowSize, IAppEventHandler appEventHandler)
         {
             _windowSize = new Vector2(windowSize.X, 1.0f);
+            _appEventHandler = appEventHandler;
 
             // アプリケーションフォルダの作成
             System.IO.Directory.CreateDirectory(DataDir);
@@ -63,6 +76,10 @@ namespace Clip_it
             bool bAlighn = false;
             if (ImGui.BeginMainMenuBar())
             {
+                if (ImGui.MenuItem("▼"))
+                {
+                    _appEventHandler?.OnPushHide();
+                }
                 if (ImGui.MenuItem("New"))
                 {
                     fusens.Add(new Fusen(new FusenModel()));
