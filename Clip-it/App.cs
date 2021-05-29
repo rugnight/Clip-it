@@ -165,13 +165,53 @@ namespace Clip_it
         {
             var io = ImGui.GetIO();
 
+            // ESC
             if (ImGui.IsKeyPressed((int)Key.Escape, false))
             {
-                _appEventHandler?.OnPushHide();
+                if (ImGui.IsAnyItemActive() || ImGui.IsWindowFocused(ImGuiFocusedFlags.AnyWindow))
+                {
+                    // ウィンドウからフォーカスを外す
+                    ImGui.SetWindowFocus(null);
+                }
+                else
+                {
+                    // ツールを非表示に
+                    _appEventHandler?.OnPushHide();
+                }
+            }
+
+            if (io.KeyCtrl && ImGui.IsKeyPressed((int)Key.A, false))
+            {
+                _bAlighn = true;
+            }
+
+            if (io.KeyCtrl && ImGui.IsKeyPressed((int)Key.N, false))
+            {
+                CreateNewFusen();
+            }
+
+            if (io.KeyCtrl && ImGui.IsKeyPressed((int)Key.S, false))
+            {
+                LayoutSave();
+            }
+
+            if (io.KeyCtrl && ImGui.IsKeyPressed((int)Key.L, false))
+            {
+                LayoutLoad();
+            }
+
+            // 削除
+            if (io.KeyCtrl && ImGui.IsKeyPressed((int)Key.W, false) && ImGui.IsWindowFocused(ImGuiFocusedFlags.AnyWindow))
+            {
+                var activeFusen = fusens.Find(a => a.IsActive());
+                if (activeFusen != null)
+                {
+                    activeFusen.Model.Delete();
+                }
             }
 
             // CTRL+Vで付箋作成
-            if (io.KeyCtrl && !ImGui.IsAnyItemActive() && ImGui.IsKeyPressed((int)Key.V, false))
+            if (io.KeyCtrl && ImGui.IsKeyPressed((int)Key.V, false) && !ImGui.IsWindowFocused(ImGuiFocusedFlags.AnyWindow))
             {
                 var clipText = ImGui.GetClipboardText();
                 if (clipText != null)
@@ -180,22 +220,6 @@ namespace Clip_it
                     model.Text = clipText;
                     fusens.Add(new Fusen(model));
                 }
-            }
-            else if (io.KeyCtrl && ImGui.IsKeyPressed((int)Key.A, false))
-            {
-                _bAlighn = true;
-            }
-            else if (io.KeyCtrl && ImGui.IsKeyPressed((int)Key.N, false))
-            {
-                CreateNewFusen();
-            }
-            else if (io.KeyCtrl && ImGui.IsKeyPressed((int)Key.S, false))
-            {
-                LayoutSave();
-            }
-            else if (io.KeyCtrl && ImGui.IsKeyPressed((int)Key.L, false))
-            {
-                LayoutLoad();
             }
 
         }
@@ -285,7 +309,7 @@ namespace Clip_it
             {
                 if (string.IsNullOrEmpty(fusens[i].Model.Text))
                 {
-                    fusens[i].Model.Deleted = true;
+                    fusens[i].Model.Delete();
                 }
             }
         }

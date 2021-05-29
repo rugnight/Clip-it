@@ -45,7 +45,7 @@ namespace Clip_it
         public float Y = 0.0f;
 
         // 削除済み
-        public bool Deleted { get; set; } = false;
+        public bool Deleted { get; private set; } = false;
 
         // 内容更新通知
         public event Action<FusenModel> OnChangeText;
@@ -63,6 +63,12 @@ namespace Clip_it
         {
             this._id = id;
             this._text = (text != null) ? text : "";
+        }
+
+        // 削除
+        public void Delete()
+        {
+            Deleted = true;
         }
 
         // テキストに含まれるURLを取得

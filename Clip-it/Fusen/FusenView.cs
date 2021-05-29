@@ -22,6 +22,9 @@ namespace Clip_it
         // 有効なウィンドウか？
         bool _bEnableWindow = true;
 
+        // アクティブなウィンドウ化？
+        bool _bActive = false;
+
         // 入力状態にフォーカスする
         // ウィンドウ作成直後の場合、そのフレームでフォーカス命令が機能しないので
         // 2フレーム後にフォーカスするように実装している
@@ -45,6 +48,7 @@ namespace Clip_it
         /// <param name="model"></param>
         public void Disp(Fusen fusen)
         {
+            _bActive = false;
             if (!_bEnableWindow)
             {
                 return;
@@ -82,8 +86,18 @@ namespace Clip_it
 
             // 最後に描画したウィンドウサイズを保存
             lastSize = ImGui.GetWindowSize();
+            _bActive = ImGui.IsWindowFocused();
 
             ImGui.End();
+        }
+
+        /// <summary>
+        /// この伏線がアクティブか？
+        /// </summary>
+        /// <returns></returns>
+        public bool IsActive()
+        {
+            return _bActive;
         }
 
         /// <summary>

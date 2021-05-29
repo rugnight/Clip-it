@@ -60,7 +60,7 @@ namespace Clip_it
             };
             _view.OnClose += () =>
             {
-                model.Deleted = true;
+                model.Delete();
             };
         }
 
@@ -85,6 +85,15 @@ namespace Clip_it
         public void SetFocusInput()
         {
             _view.SetFocusInput();
+        }
+
+        /// <summary>
+        /// アクティブ状態か？
+        /// </summary>
+        /// <returns></returns>
+        public bool IsActive()
+        {
+            return _view.IsActive();
         }
 
         /// <summary>
