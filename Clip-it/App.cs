@@ -188,11 +188,6 @@ namespace Clip_it
                 }
             }
 
-            if (io.KeyCtrl && ImGui.IsKeyPressed((int)Key.A, false))
-            {
-                _bAlighn = true;
-            }
-
             if (io.KeyCtrl && ImGui.IsKeyPressed((int)Key.N, false))
             {
                 CreateNewFusen();
@@ -207,6 +202,13 @@ namespace Clip_it
             {
                 LayoutLoad();
             }
+
+            // 整列
+            if (io.KeyCtrl && ImGui.IsKeyPressed((int)Key.A, false) && !ImGui.IsWindowFocused(ImGuiFocusedFlags.AnyWindow))
+            {
+                _bAlighn = true;
+            }
+
 
             // 削除
             if (io.KeyCtrl && ImGui.IsKeyPressed((int)Key.W, false) && ImGui.IsWindowFocused(ImGuiFocusedFlags.AnyWindow))
