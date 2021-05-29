@@ -35,7 +35,7 @@ namespace Clip_it
 
             // Create window, GraphicsDevice, and all resources necessary for the demo.
             VeldridStartup.CreateWindowAndGraphicsDevice(
-                new WindowCreateInfo(50, 50, 1280, 720, WindowState.Normal, App.AppName),
+                new WindowCreateInfo(50, 50, 1280, 720, WindowState.BorderlessFullScreen, App.AppName),
                 new GraphicsDeviceOptions(false, null, true, ResourceBindingModel.Improved, true, true),
                 out _window,
                 out _gd);
@@ -92,7 +92,7 @@ namespace Clip_it
             _controller = new ImGuiController(_gd, _gd.MainSwapchain.Framebuffer.OutputDescription, _window.Width, _window.Height);
 
             // アプリケーション初期化
-            app.Initialize();
+            app.Initialize(new Vector2(_window.Width, _window.Height));
 
             // Main application loop
             while (_window.Exists)
