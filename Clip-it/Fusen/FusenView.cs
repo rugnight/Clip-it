@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Numerics;
 using System.Collections.Generic;
 using ImGuiNET;
 
@@ -9,12 +10,17 @@ namespace Clip_it
     /// </summary>
     class FusenView
     {
+        const float INPUT_WIDTH = 300.0f;
+        readonly Vector2 BUTTON_SIZE = new Vector2(INPUT_WIDTH, 20.0f);
+
+        bool _fucusedInputText = false;
+
         public bool visible = true;
-        public bool Visible { get; set; } = true;
 
         public event Action<string> OnChangeText;
         public event Action<string> OnSelectURL;
         public event Action<string> OnSelectPath;
+        public event Action OnChangeAndEditEnd;
         public event Action OnClose;
 
         /// <summary>
@@ -22,33 +28,41 @@ namespace Clip_it
         /// </summary>
         /// <param name="fusen"></param>
         /// <param name="model"></param>
-        public void Disp(Fusen fusen, FusenModel model)
+        public void Disp(Fusen fusen)
         {
             if (!visible)
             {
                 return;
             }
 
+            var model = fusen.Model;
             var text = model.Text;
-            var windowsFlags = ImGuiWindowFlags.MenuBar | ImGuiWindowFlags.NoTitleBar | ImGuiWindowFlags.AlwaysAutoResize;
-            ImGui.Begin(model.Id.ToString(), ref visible, windowsFlags);
+            var windowsFlags = /*ImGuiWindowFlags.MenuBar | ImGuiWindowFlags.NoTitleBar | */ ImGuiWindowFlags.AlwaysAutoResize;
+            if (ImGui.Begin($"\n\n{model.Id.ToString()}", ref visible, windowsFlags))
+            {
+                DispText(model);
 
-            DispText(model);
+                ImGui.Spacing();
+                DispURLButtons(fusen);
 
-            ImGui.Spacing();
-            DispURLButtons(fusen);
+                ImGui.Spacing();
+                DispPathButtons(fusen);
 
-            ImGui.Spacing();
-            DispPathButtons(fusen);
+                ImGui.Spacing();
+                DispDateButtons(fusen);
+            }
+            else
+            {
+                // 折りたたまれているとき
+            }
 
-            ImGui.Spacing();
-            DispDateButtons(fusen);
-
-            ImGui.Spacing();
-            DispCloseButton(fusen);
+            // 閉じられた
+            if (!visible)
+            {
+                OnClose?.Invoke();
+            }
 
             ImGui.End();
-
         }
 
         /// <summary>
@@ -61,18 +75,27 @@ namespace Clip_it
             var style = ImGui.GetStyle();
             var innerSpace = style.ItemInnerSpacing;
             var itemSpace = style.ItemSpacing;
-            var w = (ImGui.CalcTextSize(text).X * 1.0f) + (innerSpace.X * 2.0f) + (itemSpace.X * 2.0f);
+            //var w = (ImGui.CalcTextSize(text).X * 1.0f) + (innerSpace.X * 2.0f) + (itemSpace.X * 2.0f);
             var h = (ImGui.CalcTextSize(text).Y * 1.0f) + (innerSpace.Y * 2.0f) + (itemSpace.Y * 2.0f) + 20.0f;
 
-            // 折りたたみ
-            //ImGui.SetNextWindowCollapsed(model.Opened);
-            //if (ImGui.CollapsingHeader(text.Substring(0, Math.Min(30, text.Length))))
+            if (ImGui.InputTextMultiline(
+                "",
+                ref text,
+                1024,
+                new System.Numerics.Vector2(INPUT_WIDTH, h),
+                ImGuiInputTextFlags.NoHorizontalScroll
+                ))
             {
-                if (ImGui.InputTextMultiline("", ref text, 1024, new System.Numerics.Vector2(w, h), ImGuiInputTextFlags.None))
-                {
-                    this.OnChangeText?.Invoke(text);
-                }
+                this.OnChangeText?.Invoke(text);
             }
+
+            // フォーカス状態の監視
+            if (ImGui.IsItemDeactivatedAfterEdit())
+            {
+                OnChangeAndEditEnd?.Invoke();
+                _fucusedInputText = ImGui.IsItemFocused();
+            }
+
         }
 
         /// <summary>
@@ -87,7 +110,7 @@ namespace Clip_it
                 var title = string.IsNullOrEmpty(pair.Value) ? pair.Key : pair.Value;
 
                 // タイトル
-                if (ImGui.Button(title))
+                if (ImGui.Button(title, BUTTON_SIZE))
                 {
                     this.OnSelectURL?.Invoke(pair.Key);
                 }
@@ -108,7 +131,7 @@ namespace Clip_it
                 var title = string.IsNullOrEmpty(pair.Value) ? pair.Key : pair.Value;
 
                 // タイトル
-                if (ImGui.Button(title))
+                if (ImGui.Button(title, BUTTON_SIZE))
                 {
                     this.OnSelectPath?.Invoke(pair.Key);
                 }
@@ -146,9 +169,9 @@ namespace Clip_it
         /// <param name="fusen"></param>
         void DispCloseButton(Fusen fusen)
         {
-            if (ImGui.Button("X"))
+            if (ImGui.Button("X", BUTTON_SIZE))
             {
-                visible = false;
+                //visible = false;
                 OnClose?.Invoke();
             }
         }

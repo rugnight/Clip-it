@@ -31,7 +31,7 @@ namespace Clip_it
             this._model = model;
             this._model.OnChangeText += (changedModel) =>
             {
-                this.UpdateMetaData();
+                //this.UpdateMetaData();
             };
             this.UpdateMetaData();
 
@@ -48,7 +48,11 @@ namespace Clip_it
             {
                 OpenPath(path);
             };
-            
+            _view.OnChangeAndEditEnd += () =>
+            {
+                // 内容変更があってテキスト入力からフォーカスが外れたらメタ情報更新
+                this.UpdateMetaData();
+            };
             _view.OnClose += () =>
             {
                 model.Deleted = true;
@@ -60,7 +64,7 @@ namespace Clip_it
         /// </summary>
         public void Update()
         {
-            _view.Disp(this, _model);
+            _view.Disp(this);
         }
 
         /// <summary>
