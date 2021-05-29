@@ -48,11 +48,6 @@ namespace Clip_it
             // キー入力
             _window.KeyDown += (evt) =>
             {
-                // ESCで非表示
-                //if (evt.Key == Key.Escape)
-                //{
-                //    _window.Visible = false;
-                //}
                 // タブで全体を半透明
                 if (evt.Key == Key.Tab)
                 {
@@ -97,7 +92,7 @@ namespace Clip_it
                 {
                     break; 
                 }
-                _controller.Update(1f / 60f, snapshot); // Feed the input events to our ImGui controller, which passes them through to ImGui.
+                _controller.Update(1f / 60f, snapshot);
 
                 // アプリケーション処理
                 if (!_app.Update())

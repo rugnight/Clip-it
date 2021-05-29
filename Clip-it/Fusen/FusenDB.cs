@@ -6,6 +6,9 @@ using ImGuiNET;
 
 namespace Clip_it
 {
+    /// <summary>
+    /// Sqliteで付箋を管理
+    /// </summary>
     class FusenDB
     {
         SQLiteConnection connection = null;
@@ -18,7 +21,11 @@ namespace Clip_it
             Close();
         }
 
-
+        /// <summary>
+        /// コネクションを開く
+        /// </summary>
+        /// <param name="dbFilePath"></param>
+        /// <returns></returns>
         public bool Open(string dbFilePath)
         {
             if (connection != null)
@@ -34,6 +41,9 @@ namespace Clip_it
             return true;
         }
 
+        /// <summary>
+        /// コネクションを閉じる
+        /// </summary>
         public void Close()
         {
             if (connection == null) return;
@@ -42,6 +52,9 @@ namespace Clip_it
             connection = null;
         }
 
+        /// <summary>
+        /// テーブルを生成
+        /// </summary>
         public void CreateDB()
         {
             Debug.Assert(connection != null);
@@ -51,7 +64,6 @@ namespace Clip_it
             {
                 using (SQLiteCommand command = connection.CreateCommand())
                 {
-                    //command.CommandText = "create table t_product(id INTEGER  PRIMARY KEY AUTOINCREMENT, text TEXT)";
                     command.CommandText = "create table t_fusen(id TEXT PRIMARY KEY, text TEXT, opened TEXT, opened_text TEXT)";
                     command.ExecuteNonQuery();
                 }
@@ -62,6 +74,10 @@ namespace Clip_it
             }
         }
 
+        /// <summary>
+        /// 付箋を保存
+        /// </summary>
+        /// <param name="models"></param>
         public void Save(List<FusenModel> models)
         {
             Debug.Assert(connection != null);
@@ -101,6 +117,10 @@ namespace Clip_it
             }
         }
 
+        /// <summary>
+        /// 付箋を読み込み
+        /// </summary>
+        /// <returns></returns>
         public List<FusenModel> Load()
         {
             var result = new List<FusenModel>();
@@ -127,6 +147,9 @@ namespace Clip_it
             return result;
         }
 
+        /// <summary>
+        /// SQLITEのバージョンを表示
+        /// </summary>
         public void VersionDB()
         {
             Debug.Assert(connection != null);

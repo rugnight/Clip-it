@@ -2,9 +2,20 @@
 
   <PropertyGroup>
     <OutputType>WinExe</OutputType>
-    <TargetFramework>netcoreapp3.1</TargetFramework>
+    <TargetFramework>net5.0</TargetFramework>
     <RootNamespace>Clip_it</RootNamespace>
     <AssemblyName>Clip-it</AssemblyName>
+    <Authors>rugnight</Authors>
+    <PackageProjectUrl>https://github.com/rugnight/Clip-it</PackageProjectUrl>
+    <RepositoryUrl>git@github.com:rugnight/Clip-it.git</RepositoryUrl>
+    <RepositoryType>git</RepositoryType>
+
+    <!-- シングルバイナリ出力設定 -->
+    <PublishSingleFile>true</PublishSingleFile>
+    <SelfContained>true</SelfContained>
+    <RuntimeIdentifier>win-x64</RuntimeIdentifier>
+    <PublishTrimmed>true</PublishTrimmed>
+    <PublishReadyToRun>true</PublishReadyToRun>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">

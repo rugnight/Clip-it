@@ -10,17 +10,23 @@ namespace Clip_it
     /// </summary>
     class FusenView
     {
+        // 本文入力の幅
         const float INPUT_WIDTH = 350.0f;
+
         // メモのヘッダー部分に表示する文字数
         const int MEMO_HEADER_TEXT_COUNT = 30;
+
+        // ボタンのサイズ
         readonly Vector2 BUTTON_SIZE = new Vector2(INPUT_WIDTH, 20.0f);
 
-        bool _fucusedInputText = false;
+        // 有効なウィンドウか？
+        bool _bEnableWindow = true;
 
-        public bool visible = true;
+        // 最後に表示したときのウィンドウサイズ
         Vector2 lastSize = new Vector2();
         public Vector2 LastSize => lastSize;
 
+        // 各種UIイベント通知
         public event Action<string> OnChangeText;
         public event Action<string> OnSelectURL;
         public event Action<string> OnSelectPath;
@@ -34,7 +40,7 @@ namespace Clip_it
         /// <param name="model"></param>
         public void Disp(Fusen fusen)
         {
-            if (!visible)
+            if (!_bEnableWindow)
             {
                 return;
             }
@@ -45,7 +51,7 @@ namespace Clip_it
 
             // 大量のスペースはタイトルバーにIDを表示しないため
             // 改行は ini ファイルが機能しなくなるため入れてはいけない
-            if (ImGui.Begin($"{model.Id.ToString()}".PadLeft('_'), ref visible, windowsFlags))
+            if (ImGui.Begin($"{model.Id.ToString()}".PadLeft('_'), ref _bEnableWindow, windowsFlags))
             {
                 DispText(model);
 
@@ -64,7 +70,7 @@ namespace Clip_it
             }
 
             // 閉じられた
-            if (!visible)
+            if (!_bEnableWindow)
             {
                 OnClose?.Invoke();
             }
@@ -118,7 +124,6 @@ namespace Clip_it
                 if (ImGui.IsItemDeactivatedAfterEdit())
                 {
                     OnChangeAndEditEnd?.Invoke();
-                    _fucusedInputText = ImGui.IsItemFocused();
                 }
             }
         }
@@ -139,9 +144,6 @@ namespace Clip_it
                 {
                     this.OnSelectURL?.Invoke(pair.Key);
                 }
-                //ImGui.SameLine();
-                // URL
-                //ImGui.LabelText("", pair.Key);
             }
         }
 
@@ -160,9 +162,6 @@ namespace Clip_it
                 {
                     this.OnSelectPath?.Invoke(pair.Key);
                 }
-                //ImGui.SameLine();
-                // パス
-                //ImGui.LabelText("", pair.Key);
             }
         }
 
@@ -196,7 +195,6 @@ namespace Clip_it
         {
             if (ImGui.Button("X", BUTTON_SIZE))
             {
-                //visible = false;
                 OnClose?.Invoke();
             }
         }
