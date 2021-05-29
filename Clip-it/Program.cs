@@ -27,10 +27,17 @@ namespace Clip_it
 
         // 処理の実行
         void Run()
-        { 
+        {
+
+#if DEBUG
+            var flag = WindowState.Normal;
+#else
+            var flag = WindowState.BorderlessFullScreen;
+#endif
+
             // Create window, GraphicsDevice, and all resources necessary for the demo.
             VeldridStartup.CreateWindowAndGraphicsDevice(
-                new WindowCreateInfo(50, 50, 1280, 720, WindowState.Normal, App.AppName),
+                new WindowCreateInfo(50, 50, 1280, 720, flag, App.AppName),
                 new GraphicsDeviceOptions(false, null, true, ResourceBindingModel.Improved, true, true),
                 out _window,
                 out _gd);
@@ -42,10 +49,10 @@ namespace Clip_it
             _window.KeyDown += (evt) =>
             {
                 // ESCで非表示
-                if (evt.Key == Key.Escape)
-                {
-                    _window.Visible = false;
-                }
+                //if (evt.Key == Key.Escape)
+                //{
+                //    _window.Visible = false;
+                //}
                 // タブで全体を半透明
                 if (evt.Key == Key.Tab)
                 {

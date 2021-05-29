@@ -11,6 +11,8 @@ namespace Clip_it
     class FusenView
     {
         const float INPUT_WIDTH = 350.0f;
+        // メモのヘッダー部分に表示する文字数
+        const int MEMO_HEADER_TEXT_COUNT = 30;
         readonly Vector2 BUTTON_SIZE = new Vector2(INPUT_WIDTH, 20.0f);
 
         bool _fucusedInputText = false;
@@ -39,7 +41,7 @@ namespace Clip_it
 
             var model = fusen.Model;
             var text = model.Text;
-            var windowsFlags = /*ImGuiWindowFlags.MenuBar | ImGuiWindowFlags.NoTitleBar | ImGuiWindowFlags.AlwaysAutoResize*/  ImGuiWindowFlags.AlwaysAutoResize;
+            var windowsFlags = ImGuiWindowFlags.AlwaysAutoResize;
 
             // 大量のスペースはタイトルバーにIDを表示しないため
             // 改行は ini ファイルが機能しなくなるため入れてはいけない
@@ -79,18 +81,22 @@ namespace Clip_it
         /// <param name="text"></param>
         void DispText(FusenModel model)
         {
-            var flags = ImGuiTreeNodeFlags.Bullet;
+            var text = model.Text;
+            var flags = ImGuiTreeNodeFlags.None;
             // 初回起動時に前回の開閉状態を再現する
             if (model.OpenedText) 
             {
                 flags |= ImGuiTreeNodeFlags.DefaultOpen;
             }
 
+            // ヘッダのタイトルは空文字だとテキストボックス編集ができなくなるので
+            // 内容が空のときは空白を入れておく
+            var title = (0 < text.Length) ? text.Substring(0, Math.Min(text.Length, MEMO_HEADER_TEXT_COUNT)) : " ";
+
             // 開閉状態を保存する
-            model.OpenedText = ImGui.CollapsingHeader("Memo", flags);
+            model.OpenedText = ImGui.CollapsingHeader(title, flags);
             if (model.OpenedText)
             {
-                var text = model.Text;
                 var style = ImGui.GetStyle();
                 var innerSpace = style.ItemInnerSpacing;
                 var itemSpace = style.ItemSpacing;

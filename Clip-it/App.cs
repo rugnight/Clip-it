@@ -21,13 +21,13 @@ namespace Clip_it
         // アプリ名
         public const string AppName = "Clip-it";
 
-        // 隠すボタンが押された
-        public event Action OnPushHideButton;
-
         FusenDB db = new FusenDB();
         List<Fusen> fusens = new List<Fusen>();
         Vector2 _windowSize;
         IAppEventHandler _appEventHandler;
+
+        bool _bAlighn = false;
+        bool _bQuit= false;
 
         // データ保存先ディレクトリ
         string DataDir { get => System.IO.Path.Combine(System.Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), AppName); }
@@ -38,6 +38,11 @@ namespace Clip_it
         // IMGUIの保存情報ファイル
         string IniFilePath { get => System.IO.Path.Combine(DataDir, "imgui.ini"); }
 
+        /// <summary>
+        /// 初期化
+        /// </summary>
+        /// <param name="windowSize"></param>
+        /// <param name="appEventHandler"></param>
         public void Initialize(Vector2 windowSize, IAppEventHandler appEventHandler)
         {
             _windowSize = new Vector2(windowSize.X, 1.0f);
@@ -56,73 +61,36 @@ namespace Clip_it
                 fusens.Add(new Fusen(model));
             }
             // imgui.iniロード
-            ImGui.LoadIniSettingsFromDisk(IniFilePath);
+            LayoutLoad();
         }
 
+        /// <summary>
+        /// 破棄
+        /// </summary>
         public void Terminate()
         {
             // DB保存
             db.Save(fusens.Select((fusen) => fusen.Model).ToList());
             // imgui.ini保存
-            ImGui.SaveIniSettingsToDisk(IniFilePath);
+            LayoutSave();
         }
 
+        /// <summary>
+        /// 更新
+        /// </summary>
+        /// <returns></returns>
         public bool Update()
         {
-            ImGui.SetNextWindowPos(new Vector2(0.0f, 0.0f));
-            ImGui.SetNextWindowSize(_windowSize);
-            //ImGui.Begin("Fusen Manager", ImGuiWindowFlags.NoResize | ImGuiWindowFlags.NoMove);
+            _bAlighn = false;
 
-            bool bAlighn = false;
-            if (ImGui.BeginMainMenuBar())
-            {
-                if (ImGui.MenuItem("▼"))
-                {
-                    _appEventHandler?.OnPushHide();
-                }
-                if (ImGui.MenuItem("New"))
-                {
-                    fusens.Add(new Fusen(new FusenModel()));
-                }
-                if (ImGui.MenuItem("Alighn"))
-                {
-                    bAlighn = true;
-                }
-                //if (ImGui.MenuItem("Save"))
-                //{
-                //    // imgui.ini保存
-                //    ImGui.SaveIniSettingsToDisk(IniFilePath);
-                //}
-                //if (ImGui.MenuItem("Load"))
-                //{
-                //    // imgui.iniロード
-                //    ImGui.LoadIniSettingsFromDisk(IniFilePath);
-                //}
-                if (ImGui.MenuItem("Quit"))
-                {
-                    return false;
-                }
-            }
+            // メニューバーの処理
+            UpdateMenuBar();
 
-            var io = ImGui.GetIO();
-            if (io.KeyCtrl && ImGui.IsKeyPressed((int)Key.V, false))
-            {
-                // CTRL+Vで付箋作成
-                if (ImGui.IsWindowFocused())
-                {
-                    var clipText = ImGui.GetClipboardText();
-
-                    if (clipText != null)
-                    {
-                        var model = new FusenModel();
-                        model.Text = clipText;
-                        fusens.Add(new Fusen(model));
-                    }
-                }
-            }
+            // ショートカットキーの処理
+            UpdateShortcutKeys();
 
             // 付箋を描画
-            if (bAlighn)
+            if (_bAlighn)
             {
                 FusenSortUpdate();
             }
@@ -131,16 +99,93 @@ namespace Clip_it
                 FusenUpdate();
             }
 
-            //ImGui.Begin("Debug");
-            //ImGui.LogButtons();
-            //ImGui.LogFinish();
-            //ImGui.End();
-
-
-            //ImGui.End();
-
-            return true;
+            return !_bQuit;
         }
+
+        /// <summary>
+        /// メニューバーを処理
+        /// </summary>
+        void UpdateMenuBar()
+        {
+            if (ImGui.BeginMainMenuBar())
+            {
+                if (ImGui.MenuItem("▼"))
+                {
+                    _appEventHandler?.OnPushHide();
+                }
+
+                if (ImGui.MenuItem("New", "CTRL+N"))
+                {
+                    CreateNewFusen();
+                }
+                if (ImGui.MenuItem("Alighn", "CTRL+A"))
+                {
+                    _bAlighn = true;
+                }
+
+                if (ImGui.BeginMenu("Layout"))
+                {
+                    if (ImGui.MenuItem("Save", "CTRL+S"))
+                    {
+                        LayoutSave();
+                    }
+                    if (ImGui.MenuItem("Load", "CTRL+L"))
+                    {
+                        LayoutLoad();
+                    }
+                    ImGui.EndMenu();
+                }
+
+                if (ImGui.MenuItem("Clean Empty"))
+                {
+                    DeleteEmptyFusenAll();
+                }
+
+                if (ImGui.MenuItem("Quit"))
+                {
+                    _bQuit = true; ;
+                }
+                ImGui.EndMainMenuBar();
+            }
+        }
+
+        /// <summary>
+        /// ショートカットキーの処理
+        /// </summary>
+        void UpdateShortcutKeys()
+        {
+            var io = ImGui.GetIO();
+
+            // CTRL+Vで付箋作成
+            if (io.KeyCtrl && !ImGui.IsAnyItemActive() && ImGui.IsKeyPressed((int)Key.V, false))
+            {
+                var clipText = ImGui.GetClipboardText();
+                if (clipText != null)
+                {
+                    var model = new FusenModel();
+                    model.Text = clipText;
+                    fusens.Add(new Fusen(model));
+                }
+            }
+            else if (io.KeyCtrl && ImGui.IsKeyPressed((int)Key.A, false))
+            {
+                _bAlighn = true;
+            }
+            else if (io.KeyCtrl && ImGui.IsKeyPressed((int)Key.N, false))
+            {
+                CreateNewFusen();
+            }
+            else if (io.KeyCtrl && ImGui.IsKeyPressed((int)Key.S, false))
+            {
+                LayoutSave();
+            }
+            else if (io.KeyCtrl && ImGui.IsKeyPressed((int)Key.L, false))
+            {
+                LayoutLoad();
+            }
+
+        }
+
 
         /// <summary>
         /// 付箋の更新・描画
@@ -189,32 +234,14 @@ namespace Clip_it
                 }
 
             }
+        }
 
-#if false
-            int cnt = 0;
-            int colNum = 3;
-            float padX = 10;
-            float padY = 10;
-            float x = padX;
-            float[] colStartY = Enumerable.Repeat<float>(padY + 20, colNum).ToArray();
-            foreach (var fusen in fusens)
-            {
-                int rowIdx = (cnt / colNum);
-                int colIdx = (cnt % colNum);
-                float y = colStartY[colIdx];
-                ImGui.SetNextWindowPos(new Vector2(x, y));
-
-                fusen.Update();
-
-                x += fusen.LastSize.X + padX;
-                if (_windowSize.X < x)
-                {
-                    x = padX;
-                }
-                colStartY[colIdx] += fusen.LastSize.Y + padY;
-                cnt++;
-            }
-#endif
+        /// <summary>
+        /// 新しい付箋を作成する
+        /// </summary>
+        void CreateNewFusen()
+        {
+            fusens.Add(new Fusen(new FusenModel()));
         }
 
         /// <summary>
@@ -231,6 +258,38 @@ namespace Clip_it
             }
         }
 
+        /// <summary>
+        /// 内容画空の付箋をすべて削除する
+        /// </summary>
+        public void DeleteEmptyFusenAll()
+        {
+            // 削除対象に削除フラグを建てる
+            // 実際の削除はDB保存時に行われる
+            for (int i = fusens.Count - 1; 0 <= i; --i)
+            {
+                if (string.IsNullOrEmpty(fusens[i].Model.Text))
+                {
+                    fusens[i].Model.Deleted = true;
+                }
+            }
+        }
+
+        // imgui.ini保存
+        void LayoutSave()
+        {
+            ImGui.SaveIniSettingsToDisk(IniFilePath);
+        }
+
+        // imgui.iniロード
+        void LayoutLoad()
+        {
+            ImGui.LoadIniSettingsFromDisk(IniFilePath);
+        }
+
+        /// <summary>
+        /// ファイルがウィンドウにドロップされたときの挙動
+        /// </summary>
+        /// <param name="dropFile"></param>
         public void OnDropItem(string dropFile)
         {
             var model = new FusenModel();
