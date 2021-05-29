@@ -118,13 +118,13 @@ namespace Clip_it
                 {
                     CreateNewFusen();
                 }
-                if (ImGui.MenuItem("Alighn", "CTRL+A"))
-                {
-                    _bAlighn = true;
-                }
 
                 if (ImGui.BeginMenu("Layout"))
                 {
+                    if (ImGui.MenuItem("Alighn", "CTRL+A"))
+                    {
+                        _bAlighn = true;
+                    }
                     if (ImGui.MenuItem("Save", "CTRL+S"))
                     {
                         LayoutSave();
@@ -155,6 +155,12 @@ namespace Clip_it
         void UpdateShortcutKeys()
         {
             var io = ImGui.GetIO();
+
+
+            if (ImGui.IsKeyPressed((int)Key.Escape, false))
+            {
+                _appEventHandler?.OnPushHide();
+            }
 
             // CTRL+Vで付箋作成
             if (io.KeyCtrl && !ImGui.IsAnyItemActive() && ImGui.IsKeyPressed((int)Key.V, false))
