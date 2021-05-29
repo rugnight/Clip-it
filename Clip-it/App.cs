@@ -52,7 +52,14 @@ namespace Clip_it
         {
             ImGui.SetNextWindowPos(new Vector2(0.0f, 0.0f));
             ImGui.SetNextWindowSize(_windowSize);
-            ImGui.Begin("Fusen Manager", ImGuiWindowFlags.NoResize | ImGuiWindowFlags.NoMove | ImGuiWindowFlags.MenuBar);
+            //ImGui.Begin("Fusen Manager", ImGuiWindowFlags.NoResize | ImGuiWindowFlags.NoMove);
+
+            if (ImGui.BeginMainMenuBar())
+            {
+                if (ImGui.MenuItem("New"))
+                {
+                }
+            }
 
             var io = ImGui.GetIO();
             if (io.KeyCtrl && ImGui.IsKeyPressed((int)Key.V, false))
@@ -81,7 +88,7 @@ namespace Clip_it
                 fusen.Update();
             }
 
-            ImGui.End();
+            //ImGui.End();
         }
 
         public void OnDropItem(string dropFile)
