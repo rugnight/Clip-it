@@ -26,7 +26,5 @@ namespace Clip_it
             this.Link = link;
             this.Title = title;
         }
-
     };
-
 }

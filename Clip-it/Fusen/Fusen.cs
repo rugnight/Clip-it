@@ -9,12 +9,23 @@ using System.Numerics;
 namespace Clip_it
 {
     /// <summary>
+    /// 付箋に関するイベント通知
+    /// </summary>
+    interface IFusenEventHandler
+    {
+        public void OnFusenChangeAndEditEnd(Fusen fusen);
+        public void OnFusenRequestUrlTitle(string url, Action<string> callback);
+    } 
+
+    /// <summary>
     /// 付箋
     /// </summary>
     class Fusen
     {
         FusenModel _model;
         FusenView _view;
+
+        IFusenEventHandler _eventHandler;
 
         public FusenModel Model => _model;
         public Vector2 LastSize => _view.LastSize;
@@ -25,18 +36,21 @@ namespace Clip_it
         /// <summary>
         /// コンストラクタ
         /// </summary>
-        public Fusen()
-            : this(new FusenModel())
+        public Fusen(IFusenEventHandler eventHandler)
+            : this(new FusenModel(), eventHandler)
         {
         }
-        public Fusen(FusenModel model) 
+        public Fusen(FusenModel model, IFusenEventHandler eventHandler) 
         {
             this._model = model;
+            this._eventHandler = eventHandler;
             this._model.OnChangeText += (changedModel) =>
             {
                 //this.UpdateMetaData();
             };
-            this.UpdateMetaData();
+            //this.UpdateMetaData();
+            // 初回の内容変更を通知
+            _eventHandler?.OnFusenChangeAndEditEnd(this);
 
             _view = new FusenView();
             _view.OnChangeText += (changedText) =>
@@ -54,7 +68,8 @@ namespace Clip_it
             _view.OnChangeAndEditEnd += () =>
             {
                 // 内容変更があってテキスト入力からフォーカスが外れたらメタ情報更新
-                this.UpdateMetaData();
+                //this.UpdateMetaData();
+                _eventHandler?.OnFusenChangeAndEditEnd(this);
             };
             _view.OnClose += () =>
             {
@@ -97,7 +112,7 @@ namespace Clip_it
         /// <summary>
         /// URLリストを更新
         /// </summary>
-        void UpdateMetaData()
+        public void UpdateMetaData()
         {
             // 時刻
             var dates = this._model.GetDates();
@@ -146,7 +161,13 @@ namespace Clip_it
                 this.Urls[url] = new LinkModel(url, "");
 
                 // 非同期通信でタイトル取得
-                this.Urls[url].Title = GetURLTitle(url).Result;
+                this._eventHandler?.OnFusenRequestUrlTitle(
+                    url,
+                    (title) =>
+                    {
+                        this.Urls[url].Title = title;
+                    }
+                );
             }
         }
 
@@ -172,45 +193,6 @@ namespace Clip_it
             psi.UseShellExecute = true;
             psi.FileName = path;
             System.Diagnostics.Process.Start(psi);
-        }
-
-        /// <summary>
-        /// 指定URLのサイトのタイトルを取得する
-        /// </summary>
-        /// <param name="url"></param>
-        /// <returns></returns>
-        static async Task<string> GetURLTitle(string url)
-        {
-            var title = "";
-            // 指定したサイトのHTMLをストリームで取得する
-            var doc = default(IHtmlDocument);
-            try
-            {
-                using (var client = new HttpClient())
-                using (var stream = await client.GetStreamAsync(new Uri(url)))
-                {
-                    // AngleSharp.Html.Parser.HtmlParserオブジェクトにHTMLをパースさせる
-                    var parser = new HtmlParser();
-                    doc = await parser.ParseDocumentAsync(stream);
-                }
-            }
-            catch
-            {
-            }
-            finally
-            {
-                if (doc != null)
-                {
-                    // HTMLからtitleタグの値(サイトのタイトルとして表示される部分)を取得する
-                    title = doc.Title;
-                }
-                else
-                {
-                    title = "";
-                }
-            }
-
-            return title;
         }
     }
 }

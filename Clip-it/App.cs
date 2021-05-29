@@ -5,10 +5,13 @@ using System.Collections.Generic;
 using System.Text;
 using Veldrid;
 using System.Numerics;
+using System.Threading.Tasks;
+using AngleSharp.Html.Dom;
+using System.Net.Http;
+using AngleSharp.Html.Parser;
 
 namespace Clip_it
 {
-
     // アプリケーションイベントを外部へ通知するハンドラ
     interface IAppEventHandler
     {
@@ -16,7 +19,7 @@ namespace Clip_it
     }
 
     // アプリケーション本体
-    class App
+    class App : IFusenEventHandler
     {
         // アプリ名
         public const string AppName = "Clip-it";
@@ -60,7 +63,7 @@ namespace Clip_it
             // DBの付箋から読み込み
             foreach (var model in _fusenTable.Load())
             {
-                fusens.Add(new Fusen(model));
+                fusens.Add(new Fusen(model, this));
             }
             // imgui.iniロード
             LayoutLoad();
@@ -220,7 +223,7 @@ namespace Clip_it
                 {
                     var model = new FusenModel();
                     model.Text = clipText;
-                    fusens.Add(new Fusen(model));
+                    fusens.Add(new Fusen(model, this));
                 }
             }
 
@@ -281,7 +284,7 @@ namespace Clip_it
         /// </summary>
         void CreateNewFusen()
         {
-            var fusen = new Fusen(new FusenModel());
+            var fusen = new Fusen(new FusenModel(), this);
             fusen.SetFocusInput();
             fusens.Add(fusen);
         }
@@ -329,6 +332,45 @@ namespace Clip_it
         }
 
         /// <summary>
+        /// 指定URLのサイトのタイトルを取得する
+        /// </summary>
+        /// <param name="url"></param>
+        /// <returns></returns>
+        static async Task<string> GetURLTitle(string url)
+        {
+            var title = "";
+            // 指定したサイトのHTMLをストリームで取得する
+            var doc = default(IHtmlDocument);
+            try
+            {
+                using (var client = new HttpClient())
+                using (var stream = await client.GetStreamAsync(new Uri(url)))
+                {
+                    // AngleSharp.Html.Parser.HtmlParserオブジェクトにHTMLをパースさせる
+                    var parser = new HtmlParser();
+                    doc = await parser.ParseDocumentAsync(stream);
+                }
+            }
+            catch
+            {
+            }
+            finally
+            {
+                if (doc != null)
+                {
+                    // HTMLからtitleタグの値(サイトのタイトルとして表示される部分)を取得する
+                    title = doc.Title;
+                }
+                else
+                {
+                    title = "";
+                }
+            }
+
+            return title;
+        }
+
+        /// <summary>
         /// ファイルがウィンドウにドロップされたときの挙動
         /// </summary>
         /// <param name="dropFile"></param>
@@ -336,7 +378,25 @@ namespace Clip_it
         {
             var model = new FusenModel();
             model.Text = dropFile;
-            fusens.Add(new Fusen(model));
+            fusens.Add(new Fusen(model, this));
+        }
+
+        /// <summary>
+        /// 付箋の内容に変更があった場合に呼ばれる
+        /// </summary>
+        public void OnFusenChangeAndEditEnd(Fusen fusen)
+        {
+            fusen.UpdateMetaData();
+        }
+
+        /// <summary>
+        /// 付箋からURLのタイトル取得をリクエストされた場合に呼ばれる
+        /// </summary>
+        /// <param name="fusen"></param>
+        /// <param name="callback"></param>
+        public async void OnFusenRequestUrlTitle(string url, Action<string> callback)
+        {
+            callback?.Invoke(await GetURLTitle(url));
         }
     }
 }
