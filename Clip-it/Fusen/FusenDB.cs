@@ -2,6 +2,7 @@
 using System.Diagnostics;
 using System.Collections.Generic;
 using System.Data.SQLite;
+using ImGuiNET;
 
 namespace Clip_it
 {
@@ -57,7 +58,7 @@ namespace Clip_it
             }
             catch(Exception e)
             {
-                Console.WriteLine(e.Message);
+                ImGui.LogText(e.Message);
             }
         }
 

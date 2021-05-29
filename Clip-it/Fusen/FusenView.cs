@@ -16,6 +16,8 @@ namespace Clip_it
         bool _fucusedInputText = false;
 
         public bool visible = true;
+        Vector2 lastSize = new Vector2();
+        public Vector2 LastSize => lastSize;
 
         public event Action<string> OnChangeText;
         public event Action<string> OnSelectURL;
@@ -64,6 +66,9 @@ namespace Clip_it
             {
                 OnClose?.Invoke();
             }
+
+            // 最後に描画したウィンドウサイズを保存
+            lastSize = ImGui.GetWindowSize();
 
             ImGui.End();
         }

@@ -4,6 +4,7 @@ using System.Net.Http;
 using AngleSharp.Html.Dom;
 using AngleSharp.Html.Parser;
 using System.Threading.Tasks;
+using System.Numerics;
 
 namespace Clip_it
 {
@@ -16,9 +17,11 @@ namespace Clip_it
         FusenView _view;
 
         public FusenModel Model => _model;
+        public Vector2 LastSize => _view.LastSize;
         public Dictionary<string, string> Urls { get; private set; } = new Dictionary<string, string>();
         public Dictionary<string, string> Paths { get; private set; } = new Dictionary<string, string>();
         public Dictionary<string, bool> Dates { get; private set; } = new Dictionary<string, bool>();
+
         /// <summary>
         /// コンストラクタ
         /// </summary>
