@@ -410,5 +410,29 @@ namespace Clip_it
         {
             callback?.Invoke(await GetURLTitle(url));
         }
+
+        /// <summary>
+        /// URLを開くリクエストが来たときに呼ばれる
+        /// </summary>
+        /// <param name="url"></param>
+        public void OnFusenRequestOpenUrl(string url)
+        {
+            var psi = new System.Diagnostics.ProcessStartInfo();
+            psi.UseShellExecute = true;
+            psi.FileName = url;
+            System.Diagnostics.Process.Start(psi);
+        }
+
+        /// <summary>
+        /// パスを開くリクエストが来たときに呼ばれる
+        /// </summary>
+        /// <param name="path"></param>
+        public void OnFusenRequestOpenPath(string path)
+        {
+            var psi = new System.Diagnostics.ProcessStartInfo();
+            psi.UseShellExecute = true;
+            psi.FileName = path;
+            System.Diagnostics.Process.Start(psi);
+        }
     }
 }

@@ -15,6 +15,8 @@ namespace Clip_it
     {
         public void OnFusenChangeAndEditEnd(Fusen fusen);
         public void OnFusenRequestUrlTitle(string url, Action<string> callback);
+        public void OnFusenRequestOpenUrl(string url);
+        public void OnFusenRequestOpenPath(string path);
     } 
 
     /// <summary>
@@ -59,11 +61,11 @@ namespace Clip_it
             };
             _view.OnSelectURL += (url) =>
             {
-                OpenURL(url);
+                _eventHandler?.OnFusenRequestOpenUrl(url);
             };
             _view.OnSelectPath += (path) =>
             {
-                OpenPath(path);
+                _eventHandler?.OnFusenRequestOpenPath(path);
             };
             _view.OnChangeAndEditEnd += () =>
             {
@@ -171,28 +173,5 @@ namespace Clip_it
             }
         }
 
-        /// <summary>
-        /// URLを開く
-        /// </summary>
-        /// <param name="url"></param>
-        static void OpenURL(string url)
-        {
-            var psi = new System.Diagnostics.ProcessStartInfo();
-            psi.UseShellExecute = true;
-            psi.FileName = url;
-            System.Diagnostics.Process.Start(psi);
-        }
-
-        /// <summary>
-        /// パスを開く
-        /// </summary>
-        /// <param name="path"></param>
-        static void OpenPath(string path)
-        {
-            var psi = new System.Diagnostics.ProcessStartInfo();
-            psi.UseShellExecute = true;
-            psi.FileName = path;
-            System.Diagnostics.Process.Start(psi);
-        }
     }
 }
