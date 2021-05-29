@@ -28,7 +28,7 @@ namespace Clip_it
         private static ImGuiController _controller;
 
         // UI state
-        private static Vector3 _clearColor = new Vector3(0.2f, 0.7f, 0.3f);
+        private static Vector3 _clearColor = new Vector3(0.2f, 0.2f, 0.2f);
 
         static void Main(string[] args)
         {
@@ -41,7 +41,6 @@ namespace Clip_it
                 out _gd);
             _cl = _gd.ResourceFactory.CreateCommandList();
 
-
             _window.BorderVisible = false;
 
             // キー入力
@@ -50,7 +49,8 @@ namespace Clip_it
                 // ESCで終了
                 if (evt.Key == Key.Escape)
                 {
-                    _window.Close();
+                    //_window.Close();
+                    _window.Visible = false;
                 }
                 // タブで全体を半透明
                 if (evt.Key == Key.Tab)
@@ -78,14 +78,6 @@ namespace Clip_it
             _window.DragDrop += (evt) =>
             {
                 app.OnDropItem(evt.File);
-                //var model = new FusenModel();
-                //model.Text = evt.File;
-                //fusens.Add(new Fusen(model));
-
-                //System.Diagnostics.Debug.WriteLine(evt.File);
-                //System.Diagnostics.Debug.WriteLine(ImGui.GetClipboardText());
-                //var payload = ImGui.GetDragDropPayload();
-                //System.Diagnostics.Debug.WriteLine(payload.ToString());
             };
 
 
@@ -107,7 +99,10 @@ namespace Clip_it
                 _controller.Update(1f / 60f, snapshot); // Feed the input events to our ImGui controller, which passes them through to ImGui.
 
                 // アプリケーション処理
-                app.Update();
+                if (!app.Update())
+                {
+                    _window.Close();
+                }
 
                 _cl.Begin();
                 _cl.SetFramebuffer(_gd.MainSwapchain.Framebuffer);

@@ -18,6 +18,7 @@ namespace Clip_it
 
         string DataDir { get => System.IO.Path.Combine(System.Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), AppName); }
         string DbFilePath { get => System.IO.Path.Combine(DataDir, "fusen.db"); }
+        string IniFilePath { get => System.IO.Path.Combine(DataDir, "imgui.ini"); }
 
         public void Initialize(Vector2 windowSize)
         {
@@ -35,20 +36,19 @@ namespace Clip_it
             {
                 fusens.Add(new Fusen(model));
             }
+            // imgui.iniロード
+            ImGui.LoadIniSettingsFromDisk(IniFilePath);
         }
 
         public void Terminate()
         {
             // DB保存
             db.Save(fusens.Select((fusen) => fusen.Model).ToList());
+            // imgui.ini保存
+            ImGui.SaveIniSettingsToDisk(IniFilePath);
         }
 
-        public void Update()
-        {
-            FusenUI();
-        }
-
-        void FusenUI()
+        public bool Update()
         {
             ImGui.SetNextWindowPos(new Vector2(0.0f, 0.0f));
             ImGui.SetNextWindowSize(_windowSize);
@@ -66,8 +66,21 @@ namespace Clip_it
                 if (ImGui.MenuItem("Scedules"))
                 {
                 }
+                if (ImGui.MenuItem("Save"))
+                {
+                    // imgui.ini保存
+                    ImGui.SaveIniSettingsToDisk(IniFilePath);
+                }
+                if (ImGui.MenuItem("Load"))
+                {
+                    // imgui.iniロード
+                    ImGui.LoadIniSettingsFromDisk(IniFilePath);
+                }
+                if (ImGui.MenuItem("Quit"))
+                {
+                    return false;
+                }
             }
-
 
             var io = ImGui.GetIO();
             if (io.KeyCtrl && ImGui.IsKeyPressed((int)Key.V, false))
@@ -92,6 +105,8 @@ namespace Clip_it
             }
 
             //ImGui.End();
+
+            return true;
         }
 
         public void OnDropItem(string dropFile)

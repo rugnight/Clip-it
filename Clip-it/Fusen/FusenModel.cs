@@ -37,6 +37,10 @@ namespace Clip_it
         // 折りたたみ済み
         public bool Opened = true;
 
+        // ポジション
+        public float X = 0.0f;
+        public float Y = 0.0f;
+
         // 削除済み
         public bool Deleted { get; set; } = false;
 

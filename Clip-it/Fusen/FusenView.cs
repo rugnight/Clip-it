@@ -39,7 +39,9 @@ namespace Clip_it
             var text = model.Text;
             var windowsFlags = /*ImGuiWindowFlags.MenuBar | ImGuiWindowFlags.NoTitleBar | */ ImGuiWindowFlags.AlwaysAutoResize;
 
-            if (ImGui.Begin($"\n\n{model.Id.ToString()}", ref visible, windowsFlags))
+            // 大量のスペースはタイトルバーにIDを表示しないため
+            // 改行は ini ファイルが機能しなくなるため入れてはいけない
+            if (ImGui.Begin($"{model.Id.ToString()}".PadLeft('_'), ref visible, windowsFlags))
             {
                 DispText(model);
 

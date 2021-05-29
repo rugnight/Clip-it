@@ -6,6 +6,7 @@ using System.IO;
 using Veldrid;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
+using System.Drawing;
 
 namespace ImGuiNET
 {
