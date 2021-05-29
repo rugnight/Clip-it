@@ -9,6 +9,8 @@ namespace Clip_it
 {
     class Program : IAppEventHandler
     {
+        const float FRAME_RATE = (1.0f / 30.0f);
+
         App _app = new App();
         Sdl2Window _window;
         GraphicsDevice _gd;
@@ -92,7 +94,7 @@ namespace Clip_it
                 {
                     break; 
                 }
-                _controller.Update(1f / 60f, snapshot);
+                _controller.Update(FRAME_RATE, snapshot);
 
                 // アプリケーション処理
                 if (!_app.Update())
