@@ -16,6 +16,8 @@ namespace Clip_it
         FusenModel _model;
         FusenView _view;
 
+        bool _setFocus = false;
+
         public FusenModel Model => _model;
         public Vector2 LastSize => _view.LastSize;
         public Dictionary<string, string> Urls { get; private set; } = new Dictionary<string, string>();
@@ -75,6 +77,14 @@ namespace Clip_it
             // 表示
             _view.Disp(this);
             return true;
+        }
+
+        /// <summary>
+        /// 入力欄にフォーカスを合わせる
+        /// </summary>
+        public void SetFocusInput()
+        {
+            _view.SetFocusInput();
         }
 
         /// <summary>

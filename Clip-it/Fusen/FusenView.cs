@@ -22,6 +22,11 @@ namespace Clip_it
         // 有効なウィンドウか？
         bool _bEnableWindow = true;
 
+        // 入力状態にフォーカスする
+        // ウィンドウ作成直後の場合、そのフレームでフォーカス命令が機能しないので
+        // 2フレーム後にフォーカスするように実装している
+        int _setFocusFrame = 0;
+
         // 最後に表示したときのウィンドウサイズ
         Vector2 lastSize = new Vector2();
         public Vector2 LastSize => lastSize;
@@ -82,6 +87,14 @@ namespace Clip_it
         }
 
         /// <summary>
+        /// 入力欄にフォーカスを与える
+        /// </summary>
+        public void SetFocusInput()
+        {
+            _setFocusFrame = 2;
+        }
+
+        /// <summary>
         /// 本文の表示
         /// </summary>
         /// <param name="text"></param>
@@ -101,6 +114,12 @@ namespace Clip_it
 
             // 開閉状態を保存する
             model.OpenedText = ImGui.CollapsingHeader(title, flags);
+
+            // 開いたときにメモ欄にフォーカスを移す
+            if (ImGui.IsItemToggledOpen())
+            {
+                SetFocusInput();
+            }
             if (model.OpenedText)
             {
                 var style = ImGui.GetStyle();
@@ -108,6 +127,16 @@ namespace Clip_it
                 var itemSpace = style.ItemSpacing;
                 var w = INPUT_WIDTH;
                 var h = (ImGui.CalcTextSize(text).Y * 1.0f) + (innerSpace.Y * 1.0f) + (itemSpace.Y * 1.0f) + 30.0f;
+
+                // フォーカス設定フラグが立っていたら、テキストボックスにフォーカスする
+                if (0 < _setFocusFrame)
+                {
+                    _setFocusFrame--;
+                    if (_setFocusFrame == 0)
+                    {
+                        ImGui.SetKeyboardFocusHere(0);
+                    }
+                }
 
                 if (ImGui.InputTextMultiline(
                     "",
