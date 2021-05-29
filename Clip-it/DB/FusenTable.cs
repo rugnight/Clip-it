@@ -7,55 +7,22 @@ using ImGuiNET;
 namespace Clip_it
 {
     /// <summary>
-    /// Sqliteで付箋を管理
+    /// 付箋のテーブル
     /// </summary>
-    class FusenDB
+    class FusenTable
     {
-        SQLiteConnection connection = null;
+        ClipItDB _db = null;
+        SQLiteConnection connection => _db.Connection;
 
-        public FusenDB()
+        public FusenTable(ClipItDB db)
         {
-        }
-        ~FusenDB()
-        {
-            Close();
-        }
-
-        /// <summary>
-        /// コネクションを開く
-        /// </summary>
-        /// <param name="dbFilePath"></param>
-        /// <returns></returns>
-        public bool Open(string dbFilePath)
-        {
-            if (connection != null)
-            {
-                return true;
-            }
-
-
-            var sqlConnectionSb = new SQLiteConnectionStringBuilder { DataSource = dbFilePath };
-            connection = new SQLiteConnection(sqlConnectionSb.ToString());
-            connection.Open();
-
-            return true;
-        }
-
-        /// <summary>
-        /// コネクションを閉じる
-        /// </summary>
-        public void Close()
-        {
-            if (connection == null) return;
-
-            connection.Close();
-            connection = null;
+            _db = db;
         }
 
         /// <summary>
         /// テーブルを生成
         /// </summary>
-        public void CreateDB()
+        public void CreateTable()
         {
             Debug.Assert(connection != null);
             if (connection == null) return;
@@ -147,20 +114,6 @@ namespace Clip_it
             return result;
         }
 
-        /// <summary>
-        /// SQLITEのバージョンを表示
-        /// </summary>
-        public void VersionDB()
-        {
-            Debug.Assert(connection != null);
-            if (connection == null) return;
-
-            using (var cmd = new SQLiteCommand(connection))
-            {
-                cmd.CommandText = "select sqlite_version()";
-                Console.WriteLine(cmd.ExecuteScalar());
-            }
-        }
 
     };
 }

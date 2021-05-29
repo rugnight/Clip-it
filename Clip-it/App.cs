@@ -21,7 +21,9 @@ namespace Clip_it
         // アプリ名
         public const string AppName = "Clip-it";
 
-        FusenDB db = new FusenDB();
+        ClipItDB _db;
+        FusenTable _fusenTable;
+
         List<Fusen> fusens = new List<Fusen>();
         Vector2 _windowSize;
         IAppEventHandler _appEventHandler;
@@ -51,12 +53,12 @@ namespace Clip_it
             // アプリケーションフォルダの作成
             System.IO.Directory.CreateDirectory(DataDir);
 
-            // DB開く
-            db.Open(DbFilePath);
-            db.CreateDB();
+            _db = new ClipItDB(DbFilePath);
+            _fusenTable = new FusenTable(_db);
+            _fusenTable.CreateTable();
 
             // DBの付箋から読み込み
-            foreach (var model in db.Load())
+            foreach (var model in _fusenTable.Load())
             {
                 fusens.Add(new Fusen(model));
             }
@@ -70,7 +72,7 @@ namespace Clip_it
         public void Terminate()
         {
             // DB保存
-            db.Save(fusens.Select((fusen) => fusen.Model).ToList());
+            _fusenTable.Save(fusens.Select((fusen) => fusen.Model).ToList());
             // imgui.ini保存
             LayoutSave();
         }
