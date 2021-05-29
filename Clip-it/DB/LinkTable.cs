@@ -83,7 +83,7 @@ namespace Clip_it
         /// 付箋を読み込み
         /// </summary>
         /// <returns></returns>
-        public List<LinkModel> Load()
+        public List<LinkModel> Load(List<string> urls)
         {
             var result = new List<LinkModel>();
 
@@ -91,14 +91,18 @@ namespace Clip_it
             if (connection == null) return result;
 
             SQLiteCommand cmd = connection.CreateCommand();
-            cmd.CommandText = $"SELECT * FROM {TB_NAME}";
 
-            using (SQLiteDataReader reader = cmd.ExecuteReader())
+            foreach (var url in urls)
             {
-                while (reader.Read())
+                cmd.CommandText = $"SELECT * FROM {TB_NAME} WHERE link = '{url}'";
+
+                using (SQLiteDataReader reader = cmd.ExecuteReader())
                 {
-                    var model = new LinkModel(reader["Link"].ToString(), reader["Title"].ToString());
-                    result.Add(model);
+                    while (reader.Read())
+                    {
+                        var model = new LinkModel(reader["Link"].ToString(), reader["Title"].ToString());
+                        result.Add(model);
+                    }
                 }
             }
             return result;

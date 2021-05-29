@@ -26,6 +26,7 @@ namespace Clip_it
 
         ClipItDB _db;
         FusenTable _fusenTable;
+        LinkTable _linkTable;
 
         List<Fusen> fusens = new List<Fusen>();
         Vector2 _windowSize;
@@ -59,6 +60,8 @@ namespace Clip_it
             _db = new ClipItDB(DbFilePath);
             _fusenTable = new FusenTable(_db);
             _fusenTable.CreateTable();
+            _linkTable = new LinkTable(_db);
+            _linkTable.CreateTable();
 
             // DBの付箋から読み込み
             foreach (var model in _fusenTable.Load())
@@ -336,8 +339,15 @@ namespace Clip_it
         /// </summary>
         /// <param name="url"></param>
         /// <returns></returns>
-        static async Task<string> GetURLTitle(string url)
+        async Task<string> GetURLTitle(string url)
         {
+            // DBにあればそれを使う
+            var titles = _linkTable.Load(new List<string>() { url });
+            if (0 < titles.Count)
+            {
+                return titles[0].Title;
+            }
+
             var title = "";
             // 指定したサイトのHTMLをストリームで取得する
             var doc = default(IHtmlDocument);
@@ -360,6 +370,8 @@ namespace Clip_it
                 {
                     // HTMLからtitleタグの値(サイトのタイトルとして表示される部分)を取得する
                     title = doc.Title;
+                    // DBに登録
+                    _linkTable.Save(new List<LinkModel>() { new LinkModel(url, title) });
                 }
                 else
                 {
