@@ -138,7 +138,7 @@ namespace Clip_it
                 }
                 else if (System.IO.Directory.Exists(path))
                 {
-                    item = System.IO.Path.GetDirectoryName(path);
+                    item = path;
                 }
                 else
                 {
