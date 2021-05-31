@@ -11,6 +11,7 @@ using System.Net.Http;
 using AngleSharp.Html.Parser;
 using System.Drawing.Imaging;
 using System.Drawing;
+using System.IO;
 
 namespace Clip_it
 {
@@ -444,16 +445,69 @@ namespace Clip_it
             System.Diagnostics.Process.Start(psi);
         }
 
-        // テクスチャ作成依頼
-        public void OnFusenRequestCreateTexture(string path, out Texture texture, out IntPtr texId)
+        /// <summary>
+        /// テクスチャ作成依頼
+        /// </summary>
+        /// <param name="path"></param>
+        /// <param name="texture"></param>
+        /// <param name="texId"></param>
+        public void OnFusenRequestCreateTexture(string path, Action<Texture, IntPtr> onComplete)
         {
-             CreateTextureFromFile(path, path, out texture, out texId);
+            if (Uri.IsWellFormedUriString(path, UriKind.Absolute))
+            {
+                CreateTextureFromWeb(path, (texture, texId) => onComplete?.Invoke(texture, texId));
+            }
+            else
+            {
+                Texture texture;
+                IntPtr texId;
+                CreateTextureFromFile(path, path, out texture, out texId);
+                onComplete?.Invoke(texture, texId);
+            }
         }
 
-        public void CreateTextureFromFile(string name, string filePath, out Texture texture, out IntPtr texId)
+        /// <summary>
+        /// ファイルからテクスチャを作成
+        /// </summary>
+        /// <param name="name"></param>
+        /// <param name="filePath"></param>
+        /// <param name="texture"></param>
+        /// <param name="texId"></param>
+        void CreateTextureFromFile(string name, string filePath, out Texture texture, out IntPtr texId)
+        {
+            using (var fs = new FileStream(filePath, FileMode.Open))
+            {
+                CreateTexture(name, fs, out texture, out texId);
+            }
+            
+        }
+
+        async void CreateTextureFromWeb(string url, Action<Texture, IntPtr>  onComplete)
+        {
+            var client = new HttpClient();
+            HttpResponseMessage res = await client.GetAsync(url, HttpCompletionOption.ResponseContentRead);
+
+            using (var httpStream = await res.Content.ReadAsStreamAsync())
+            {
+                IntPtr texId;
+                Texture texture;
+                CreateTexture(url, httpStream, out texture, out texId);
+                onComplete?.Invoke(texture, texId);
+            }
+        }
+
+
+        /// <summary>
+        /// テクスチャを生成
+        /// </summary>
+        /// <param name="name"></param>
+        /// <param name="stream"></param>
+        /// <param name="texture"></param>
+        /// <param name="texId"></param>
+        void CreateTexture(string name, Stream stream, out Texture texture, out IntPtr texId)
         {
             // テクスチャ作成
-            Bitmap bmp = new Bitmap(filePath);
+            Bitmap bmp = new Bitmap(stream);
             var tex = _gd.ResourceFactory.CreateTexture(
                 TextureDescription.Texture2D(
                 (uint)bmp.Width,
@@ -482,6 +536,7 @@ namespace Clip_it
             texture = tex;
             texId = _controller.GetOrCreateImGuiBinding(_gd.ResourceFactory, tex);
         }
+
 
     }
 }

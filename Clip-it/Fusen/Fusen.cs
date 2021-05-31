@@ -18,7 +18,7 @@ namespace Clip_it
         public void OnFusenRequestUrlTitle(string url, Action<string> callback);
         public void OnFusenRequestOpenUrl(string url);
         public void OnFusenRequestOpenPath(string path);
-        public void OnFusenRequestCreateTexture(string path, out Texture texture, out IntPtr texId);
+        public void OnFusenRequestCreateTexture(string path, Action<Texture, IntPtr> onComplete);
     }
 
     // テクスチャの情報
@@ -172,10 +172,12 @@ namespace Clip_it
                     case ".jpg":
                     case ".jpeg":
                     case ".bmp":
-                        IntPtr texId;
-                        Texture texture;
-                        _eventHandler.OnFusenRequestCreateTexture(path, out texture, out texId);
-                        this.Images[path] = new TextureInfo(texture, texId);
+                        _eventHandler.OnFusenRequestCreateTexture(path,
+                            (texture, texId) =>
+                            {
+                                this.Images[path] = new TextureInfo(texture, texId);
+                            }
+                            );
                         break;
 
                     default:
@@ -201,6 +203,25 @@ namespace Clip_it
                         this.Urls[url].Title = title;
                     }
                 );
+                switch (System.IO.Path.GetExtension(url))
+                {
+                    case ".png":
+                    case ".jpg":
+                    case ".jpeg":
+                    case ".bmp":
+                        _eventHandler.OnFusenRequestCreateTexture(
+                            url,
+                            (texture, texId) =>
+                            {
+                                this.Images[url] = new TextureInfo(texture, texId);
+                            }
+                            );
+                        break;
+
+                    default:
+                        break;
+                }
+                
             }
         }
 
