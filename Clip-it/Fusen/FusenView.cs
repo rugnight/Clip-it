@@ -34,6 +34,12 @@ namespace Clip_it
         Vector2 lastSize = new Vector2();
         public Vector2 LastSize => lastSize;
 
+
+        // 最後に表示したときの何個分の大きさかの値
+        int lastSizeUnit = 1;
+        public int LastSizeUnit => lastSizeUnit;
+        
+
         // 各種UIイベント通知
         public event Action<string> OnChangeText;
         public event Action<string> OnSelectURL;
@@ -91,6 +97,7 @@ namespace Clip_it
 
             // 最後に描画したウィンドウサイズを保存
             lastSize = ImGui.GetWindowSize();
+            lastSizeUnit = (int)lastSize.X / (int)INPUT_WIDTH;
             _bActive = ImGui.IsWindowFocused();
 
             ImGui.End();
@@ -141,11 +148,13 @@ namespace Clip_it
             }
             if (model.OpenedText)
             {
+                var textSize = ImGui.CalcTextSize(model.Text);
+
                 var style = ImGui.GetStyle();
                 var innerSpace = style.ItemInnerSpacing;
                 var itemSpace = style.ItemSpacing;
-                var w = INPUT_WIDTH;
-                var h = (ImGui.CalcTextSize(text).Y * 1.0f) + (innerSpace.Y * 1.0f) + (itemSpace.Y * 1.0f) + 30.0f;
+                var w = INPUT_WIDTH * ((int)INPUT_WIDTH / (int)textSize.X + 1) + ((int)INPUT_WIDTH / (int)textSize.X * 30);
+                var h = (textSize.Y * 1.0f) + (innerSpace.Y * 1.0f) + (itemSpace.Y * 1.0f) + 30.0f;
 
                 // フォーカス設定フラグが立っていたら、テキストボックスにフォーカスする
                 if (0 < _setFocusFrame)

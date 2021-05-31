@@ -269,16 +269,23 @@ namespace Clip_it
             float padY = 10;
             float x = padX;
             float y = 0.0f;
+            // 現在の行で描いた横幅個数
+            int rowUnit = 0;
             var yarray = Enumerable.Repeat(30, 64).ToList();
             for(int i = 0; i < fusens.Count; ++i)
             {
                 var fusen = fusens[i];
                 var nextW = (i <= fusens.Count) ? fusens[i].LastSize.X : 0.0f;
 
-                y = yarray[(i % colNum)];
+                y = yarray[rowUnit];
                 ImGui.SetNextWindowPos(new Vector2(x, y));
 
-                yarray[(i % colNum)] += (int)fusens[i].LastSize.Y + (int)padY;
+                // 幅分すすめる
+                for (int j = 0; j < fusens[i].LastSizeUnit; ++j)
+                {
+                    yarray[rowUnit] += (int)fusens[i].LastSize.Y + (int)padY;
+                    rowUnit++;
+                }
 
                 // 削除済みの場合は無視
                 if (!fusen.Update())
@@ -292,6 +299,7 @@ namespace Clip_it
                 if (_windowSize.X < (x + nextW))
                 {
                     x = padX;
+                    rowUnit = 0;
                     //maxH = 0.0f;
                 }
 

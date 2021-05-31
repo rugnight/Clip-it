@@ -46,6 +46,7 @@ namespace Clip_it
 
         public FusenModel Model => _model;
         public Vector2 LastSize => _view.LastSize;
+        public int LastSizeUnit => _view.LastSizeUnit;
         public Dictionary<string, LinkModel> Urls { get; private set; } = new Dictionary<string, LinkModel>();
         public Dictionary<string, string> Paths { get; private set; } = new Dictionary<string, string>();
         public Dictionary<string, bool> Dates { get; private set; } = new Dictionary<string, bool>();
