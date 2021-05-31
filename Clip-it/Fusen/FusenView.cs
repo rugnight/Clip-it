@@ -97,6 +97,7 @@ namespace Clip_it
 
             // 最後に描画したウィンドウサイズを保存
             lastSize = ImGui.GetWindowSize();
+            // 最後に描画したウィンドウがなんブロックだったかを保存
             lastSizeUnit = (int)lastSize.X / (int)INPUT_WIDTH;
             _bActive = ImGui.IsWindowFocused();
 
