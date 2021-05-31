@@ -38,6 +38,7 @@ namespace Clip_it
         public event Action<string> OnChangeText;
         public event Action<string> OnSelectURL;
         public event Action<string> OnSelectPath;
+        public event Action<DateTime, bool> OnToggleDateTime;
         public event Action OnChangeAndEditEnd;
         public event Action OnClose;
 
@@ -66,6 +67,7 @@ namespace Clip_it
 
                 ImGui.Spacing();
                 DispDateButtons(fusen);
+                DispDateTimeButtons(fusen);
 
                 ImGui.Spacing();
                 DispURLButtons(fusen);
@@ -256,6 +258,39 @@ namespace Clip_it
             }
         }
 
+        /// <summary>
+        /// 日時ボタンを表示
+        /// </summary>
+        /// <param name="fusen"></param>
+        void DispDateTimeButtons(Fusen fusen)
+        {
+            var changed = new List<DateTime>();
+            foreach (var pair in fusen.DateTimes)
+            {
+                var dt = pair.Key;
+                var dateText = $"{dt.ToShortDateString()} {dt.ToShortTimeString()}";
+
+                if (dt < DateTime.Now)
+                {
+                    ImGui.Text(dateText);
+                }
+                else
+                {
+                    // 日付
+                    bool bOn = pair.Value;
+                    if (ImGui.Checkbox(dateText, ref bOn))
+                    {
+                        changed.Add(pair.Key);
+                    }
+                }
+            }
+            foreach (var key in changed)
+            {
+                var bOn = !fusen.DateTimes[key];
+                fusen.DateTimes[key] = bOn;
+                OnToggleDateTime?.Invoke(key, bOn);
+            }
+        }
 
         /// <summary>
         /// 画像の表示

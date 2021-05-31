@@ -43,6 +43,7 @@
     <PackageReference Include="AngleSharp" Version="0.15.0" />
     <PackageReference Include="ImGui.NET" Version="1.78.0" />
     <PackageReference Include="Microsoft.NETCore.App" Version="2.2.8" />
+    <PackageReference Include="Microsoft.Toolkit.Uwp.Notifications" Version="7.0.2" />
     <PackageReference Include="System.Data.SQLite" Version="1.0.114" />
     <PackageReference Include="System.Linq" Version="4.3.0" />
     <PackageReference Include="Veldrid" Version="4.8.0" />

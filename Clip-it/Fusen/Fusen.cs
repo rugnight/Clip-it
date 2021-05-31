@@ -19,6 +19,7 @@ namespace Clip_it
         public void OnFusenRequestOpenUrl(string url);
         public void OnFusenRequestOpenPath(string path);
         public void OnFusenRequestCreateTexture(string path, Action<Texture, IntPtr> onComplete);
+        public void OnFusenRequestNotifyToggle(Fusen fusen, DateTime dateTime, bool bOn);
     }
 
     // テクスチャの情報
@@ -48,6 +49,7 @@ namespace Clip_it
         public Dictionary<string, LinkModel> Urls { get; private set; } = new Dictionary<string, LinkModel>();
         public Dictionary<string, string> Paths { get; private set; } = new Dictionary<string, string>();
         public Dictionary<string, bool> Dates { get; private set; } = new Dictionary<string, bool>();
+        public Dictionary<DateTime, bool> DateTimes { get; private set; } = new Dictionary<DateTime, bool>();
         public Dictionary<string, TextureInfo> Images { get; private set; } = new Dictionary<string, TextureInfo>();
 
         /// <summary>
@@ -87,6 +89,11 @@ namespace Clip_it
                 // 内容変更があってテキスト入力からフォーカスが外れたらメタ情報更新
                 //this.UpdateMetaData();
                 _eventHandler?.OnFusenChangeAndEditEnd(this);
+            };
+            _view.OnToggleDateTime += (dateTime, bOn) =>
+            {
+                DateTimes[dateTime] = bOn;
+                _eventHandler?.OnFusenRequestNotifyToggle(this, dateTime, bOn);
             };
             _view.OnClose += () =>
             {
@@ -142,7 +149,19 @@ namespace Clip_it
                 this.Dates[date] = false;
             }
 
+            // 日時
+            var dateTimes = this._model.GetDateTimes();
+            foreach (var dateTime in dateTimes)
+            {
+                if (this.DateTimes.ContainsKey(dateTime))
+                {
+                    continue;
+                }
+                this.DateTimes[dateTime] = false;
+            }
+
             // ファイルパス
+            this.Paths.Clear();
             var paths = this.Model.GetPaths();
             foreach (var path in paths)
             {
@@ -186,6 +205,7 @@ namespace Clip_it
             }
 
             // URL
+            this.Urls.Clear();
             var urls = this._model.GetURLs();
             foreach (var url in urls)
             {

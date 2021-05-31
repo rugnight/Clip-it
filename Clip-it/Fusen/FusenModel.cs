@@ -89,6 +89,12 @@ namespace Clip_it
             return CollectDate(this.Text);
         }
 
+        // テキストに含まれる日付を取得
+        public List<DateTime> GetDateTimes()
+        {
+            return CollectDateTime(this.Text);
+        }
+
         // テキストに含まれるURLを取得
         static List<string> CollectURL(string text)
         {
@@ -113,6 +119,32 @@ namespace Clip_it
             foreach (Match match in reg.Matches(text))
             {
                 result.Add(match.Value);
+            }
+
+            return result;
+        }
+
+        /// <summary>
+        /// テキストに含まれる日時を取得
+        /// </summary>
+        /// <param name="text"></param>
+        /// <returns></returns>
+        static List<DateTime> CollectDateTime(string text)
+        {
+            var result = new List<DateTime>();
+
+            // 2021-05-29 00:00
+            var reg = new Regex(@"(\d{4}-\d{1,2}-\d{1,2}\s\d{2}:\d{2})");
+            foreach (Match match in reg.Matches(text))
+            {
+                result.Add(DateTime.Parse(match.Value));
+            }
+
+            // 2021/05/29 00:00
+            reg = new Regex(@"\d{4}/\d{1,2}/\d{1,2}\s\d{2}:\d{2}");
+            foreach (Match match in reg.Matches(text))
+            {
+                result.Add(DateTime.Parse(match.Value));
             }
 
             return result;

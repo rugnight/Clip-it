@@ -12,6 +12,7 @@ using AngleSharp.Html.Parser;
 using System.Drawing.Imaging;
 using System.Drawing;
 using System.IO;
+using Microsoft.Toolkit.Uwp.Notifications;
 
 namespace Clip_it
 {
@@ -542,6 +543,14 @@ namespace Clip_it
             texId = _controller.GetOrCreateImGuiBinding(_gd.ResourceFactory, tex);
         }
 
+        Dictionary<(Guid, DateTime), string> Notifyies = new Dictionary<(Guid, DateTime), string>();
 
+        public void OnFusenRequestNotifyToggle(Fusen fusen, DateTime dateTime, bool bOn)
+        {
+            if (bOn)
+            {
+                new ToastContentBuilder().AddText("Clip-It").AddText(fusen.Model.Text).Schedule(new DateTimeOffset(dateTime));
+            }
+        }
     }
 }

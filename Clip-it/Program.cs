@@ -15,7 +15,7 @@ namespace Clip_it
 {
     class Program : IAppEventHandler
     {
-        const float FRAME_RATE = (1.0f / 30.0f);
+        const float FRAME_RATE = (1.0f / 60.0f);
 
         App _app = new App();
         Sdl2Window _window;
@@ -41,13 +41,12 @@ namespace Clip_it
             //ディスプレイの幅
             int displayW = System.Windows.Forms.Screen.PrimaryScreen.Bounds.Width;
 
+            // Verlrid作成
 #if DEBUG
             var flag = WindowState.Normal;
 #else
             var flag = WindowState.BorderlessFullScreen;
 #endif
-
-            // Create window, GraphicsDevice, and all resources necessary for the demo.
             VeldridStartup.CreateWindowAndGraphicsDevice(
                 new WindowCreateInfo(0, 0, displayW, displayH, flag, App.AppName),
                 new GraphicsDeviceOptions(false, null, true, ResourceBindingModel.Improved, true, true),
