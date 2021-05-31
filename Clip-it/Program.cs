@@ -36,6 +36,10 @@ namespace Clip_it
         // 処理の実行
         void Run()
         {
+            //ディスプレイの高さ
+            int displayH = System.Windows.Forms.Screen.PrimaryScreen.Bounds.Height;
+            //ディスプレイの幅
+            int displayW = System.Windows.Forms.Screen.PrimaryScreen.Bounds.Width;
 
 #if DEBUG
             var flag = WindowState.Normal;
@@ -45,7 +49,7 @@ namespace Clip_it
 
             // Create window, GraphicsDevice, and all resources necessary for the demo.
             VeldridStartup.CreateWindowAndGraphicsDevice(
-                new WindowCreateInfo(50, 50, 1280, 720, flag, App.AppName),
+                new WindowCreateInfo(0, 0, displayW, displayH, flag, App.AppName),
                 new GraphicsDeviceOptions(false, null, true, ResourceBindingModel.Improved, true, true),
                 out _window,
                 out _gd);
