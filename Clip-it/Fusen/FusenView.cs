@@ -65,6 +65,9 @@ namespace Clip_it
                 DispText(model);
 
                 ImGui.Spacing();
+                DispDateButtons(fusen);
+
+                ImGui.Spacing();
                 DispURLButtons(fusen);
 
                 ImGui.Spacing();
@@ -72,9 +75,6 @@ namespace Clip_it
 
                 ImGui.Spacing();
                 DispImages(fusen);
-
-                ImGui.Spacing();
-                DispDateButtons(fusen);
             }
             else
             {
@@ -118,7 +118,7 @@ namespace Clip_it
         void DispText(FusenModel model)
         {
             var text = model.Text;
-            var flags = ImGuiTreeNodeFlags.None;
+            var flags = ImGuiTreeNodeFlags.Bullet;
             // 初回起動時に前回の開閉状態を再現する
             if (model.OpenedText) 
             {
@@ -180,6 +180,17 @@ namespace Clip_it
         /// <param name="fusen"></param>
         void DispURLButtons(Fusen fusen)
         {
+            if (fusen.Urls.Count == 0)
+            {
+                return;
+            }
+
+            bool bOpen = ImGui.CollapsingHeader("URL", ImGuiTreeNodeFlags.DefaultOpen | ImGuiTreeNodeFlags.Bullet);
+            if (!bOpen)
+            {
+                return;
+            }
+
             // URLボタン
             foreach (var pair in fusen.Urls)
             {
@@ -197,8 +208,20 @@ namespace Clip_it
         /// パスボタンを表示
         /// </summary>
         /// <param name="fusen"></param>
+        bool FilesOpend = false;
         void DispPathButtons(Fusen fusen)
         {
+            if (fusen.Paths.Count == 0)
+            {
+                return;
+            }
+
+            FilesOpend = ImGui.CollapsingHeader("ファイル", ImGuiTreeNodeFlags.DefaultOpen | ImGuiTreeNodeFlags.Bullet);
+            if (!FilesOpend)
+            {
+                return;
+            }
+
             foreach (var pair in fusen.Paths)
             {
                 var title = string.IsNullOrEmpty(pair.Value) ? pair.Key : pair.Value;
@@ -240,6 +263,17 @@ namespace Clip_it
         /// <param name="fusen"></param>
         void DispImages(Fusen fusen)
         {
+            if (fusen.Images.Count == 0)
+            {
+                return;
+            }
+
+            bool bOpen = ImGui.CollapsingHeader("画像", ImGuiTreeNodeFlags.DefaultOpen | ImGuiTreeNodeFlags.Bullet);
+            if (!bOpen)
+            {
+                return;
+            }
+
             foreach (var texInfo in fusen.Images.Values)
             {
                 ImGui.Image(texInfo.texId, new Vector2(INPUT_WIDTH, texInfo.texture.Height * (INPUT_WIDTH / texInfo.texture.Width)));
