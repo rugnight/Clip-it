@@ -69,20 +69,22 @@ namespace Clip_it
             // 改行は ini ファイルが機能しなくなるため入れてはいけない
             if (ImGui.Begin($"{model.Id.ToString()}".PadLeft('_'), ref _bEnableWindow, windowsFlags))
             {
-                DispText(model);
+                var w = CalcWindowWidth(fusen.Model.Text);
+
+                DispText(model, w);
 
                 ImGui.Spacing();
-                DispDateButtons(fusen);
-                DispDateTimeButtons(fusen);
+                DispDateButtons(fusen, w);
+                DispDateTimeButtons(fusen, w);
 
                 ImGui.Spacing();
-                DispURLButtons(fusen);
+                DispURLButtons(fusen, w);
 
                 ImGui.Spacing();
-                DispPathButtons(fusen);
+                DispPathButtons(fusen, w);
 
                 ImGui.Spacing();
-                DispImages(fusen);
+                DispImages(fusen, w);
             }
             else
             {
@@ -121,11 +123,31 @@ namespace Clip_it
             _setFocusFrame = 2;
         }
 
+
+        /// <summary>
+        /// テキストの幅からウィンドウの幅を算出する
+        /// </summary>
+        /// <returns></returns>
+        float CalcWindowWidth(string text)
+        {
+            var textSize = ImGui.CalcTextSize(text);
+            var unitSize = 1;
+            if (INPUT_WIDTH < textSize.X)
+            {
+                unitSize = 1 + (int)textSize.X / (int)INPUT_WIDTH;
+            }
+
+            var style = ImGui.GetStyle();
+            var innerSpace = style.ItemInnerSpacing;
+            var itemSpace = style.ItemSpacing;
+            return INPUT_WIDTH * (unitSize) + (unitSize * 30);
+        }
+
         /// <summary>
         /// 本文の表示
         /// </summary>
         /// <param name="text"></param>
-        void DispText(FusenModel model)
+        void DispText(FusenModel model, float width)
         {
             var text = model.Text;
             var flags = ImGuiTreeNodeFlags.Bullet;
@@ -150,11 +172,10 @@ namespace Clip_it
             if (model.OpenedText)
             {
                 var textSize = ImGui.CalcTextSize(model.Text);
-
                 var style = ImGui.GetStyle();
                 var innerSpace = style.ItemInnerSpacing;
                 var itemSpace = style.ItemSpacing;
-                var w = INPUT_WIDTH * ((int)INPUT_WIDTH / (int)textSize.X + 1) + ((int)INPUT_WIDTH / (int)textSize.X * 30);
+                var w = width;
                 var h = (textSize.Y * 1.0f) + (innerSpace.Y * 1.0f) + (itemSpace.Y * 1.0f) + 30.0f;
 
                 // フォーカス設定フラグが立っていたら、テキストボックスにフォーカスする
@@ -190,7 +211,7 @@ namespace Clip_it
         /// URLボタンの表示
         /// </summary>
         /// <param name="fusen"></param>
-        void DispURLButtons(Fusen fusen)
+        void DispURLButtons(Fusen fusen, float width)
         {
             if (fusen.Urls.Count == 0)
             {
@@ -209,7 +230,7 @@ namespace Clip_it
                 var title = string.IsNullOrEmpty(pair.Value.Title) ? pair.Value.Link : pair.Value.Title;
 
                 // タイトル
-                if (ImGui.Button(title, BUTTON_SIZE))
+                if (ImGui.Button(title, new Vector2(width, 20)))
                 {
                     this.OnSelectURL?.Invoke(pair.Value.Link);
                 }
@@ -221,7 +242,7 @@ namespace Clip_it
         /// </summary>
         /// <param name="fusen"></param>
         bool FilesOpend = false;
-        void DispPathButtons(Fusen fusen)
+        void DispPathButtons(Fusen fusen, float width)
         {
             if (fusen.Paths.Count == 0)
             {
@@ -239,7 +260,7 @@ namespace Clip_it
                 var title = string.IsNullOrEmpty(pair.Value) ? pair.Key : pair.Value;
 
                 // タイトル
-                if (ImGui.Button(title, BUTTON_SIZE))
+                if (ImGui.Button(title, new Vector2(width, 20)))
                 {
                     this.OnSelectPath?.Invoke(pair.Key);
                 }
@@ -250,7 +271,7 @@ namespace Clip_it
         /// 日付ボタンを表示
         /// </summary>
         /// <param name="fusen"></param>
-        void DispDateButtons(Fusen fusen)
+        void DispDateButtons(Fusen fusen, float width)
         {
             var changed = new List<string>();
             foreach (var pair in fusen.Dates)
@@ -272,7 +293,7 @@ namespace Clip_it
         /// 日時ボタンを表示
         /// </summary>
         /// <param name="fusen"></param>
-        void DispDateTimeButtons(Fusen fusen)
+        void DispDateTimeButtons(Fusen fusen, float width)
         {
             var changed = new List<DateTime>();
             foreach (var pair in fusen.DateTimes)
@@ -306,7 +327,7 @@ namespace Clip_it
         /// 画像の表示
         /// </summary>
         /// <param name="fusen"></param>
-        void DispImages(Fusen fusen)
+        void DispImages(Fusen fusen, float width)
         {
             if (fusen.Images.Count == 0)
             {
@@ -321,7 +342,7 @@ namespace Clip_it
 
             foreach (var texInfo in fusen.Images.Values)
             {
-                ImGui.Image(texInfo.texId, new Vector2(INPUT_WIDTH, texInfo.texture.Height * (INPUT_WIDTH / texInfo.texture.Width)));
+                ImGui.Image(texInfo.texId, new Vector2(width, texInfo.texture.Height * (width / texInfo.texture.Width)));
             }
         }
 

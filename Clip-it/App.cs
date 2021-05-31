@@ -551,8 +551,6 @@ namespace Clip_it
             texId = _controller.GetOrCreateImGuiBinding(_gd.ResourceFactory, tex);
         }
 
-        Dictionary<(Guid, DateTime), string> Notifyies = new Dictionary<(Guid, DateTime), string>();
-
         public void OnFusenRequestNotifyToggle(Fusen fusen, DateTime dateTime, bool bOn)
         {
             if (bOn)
