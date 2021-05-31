@@ -464,9 +464,7 @@ namespace Clip_it
                 TextureUsage.Sampled));
             tex.Name = name;
 
-            bmp.MakeTransparent();
             BitmapData bmpData = bmp.LockBits(new System.Drawing.Rectangle(0, 0, bmp.Width, bmp.Height), ImageLockMode.ReadOnly, System.Drawing.Imaging.PixelFormat.Format32bppArgb);
-
             _gd.UpdateTexture(
                 tex,
                 bmpData.Scan0,
