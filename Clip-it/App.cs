@@ -263,17 +263,21 @@ namespace Clip_it
         {
             fusens.Sort((a, b) => (int)(a.LastSize.Y - b.LastSize.Y));
 
+            int colNum = (int)_windowSize.X / 350;
             float padX = 10;
             float padY = 10;
-            float maxH = 0;
             float x = padX;
-            float y = 30.0f + padY;
+            float y = 0.0f;
+            var yarray = Enumerable.Repeat(30, 64).ToList();
             for(int i = 0; i < fusens.Count; ++i)
             {
                 var fusen = fusens[i];
                 var nextW = (i <= fusens.Count) ? fusens[i].LastSize.X : 0.0f;
 
+                y = yarray[(i % colNum)];
                 ImGui.SetNextWindowPos(new Vector2(x, y));
+
+                yarray[(i % colNum)] += (int)fusens[i].LastSize.Y + (int)padY;
 
                 // 削除済みの場合は無視
                 if (!fusen.Update())
@@ -282,13 +286,12 @@ namespace Clip_it
                 }
 
                 x += fusen.LastSize.X + padX;
-                maxH = (maxH < fusen.LastSize.Y) ? fusen.LastSize.Y : maxH;
+                //maxH = (maxH < fusen.LastSize.Y) ? fusen.LastSize.Y : maxH;
 
                 if (_windowSize.X < (x + nextW))
                 {
                     x = padX;
-                    y = y + maxH + padY;
-                    maxH = 0.0f;
+                    //maxH = 0.0f;
                 }
 
             }
