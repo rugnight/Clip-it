@@ -9,6 +9,8 @@ using System.Threading.Tasks;
 using AngleSharp.Html.Dom;
 using System.Net.Http;
 using AngleSharp.Html.Parser;
+using System.Drawing.Imaging;
+using System.Drawing;
 
 namespace Clip_it
 {
@@ -27,6 +29,9 @@ namespace Clip_it
         ClipItDB _db;
         FusenTable _fusenTable;
         LinkTable _linkTable;
+
+        GraphicsDevice _gd;
+        ImGuiController _controller;
 
         List<Fusen> fusens = new List<Fusen>();
         Vector2 _windowSize;
@@ -49,8 +54,10 @@ namespace Clip_it
         /// </summary>
         /// <param name="windowSize"></param>
         /// <param name="appEventHandler"></param>
-        public void Initialize(Vector2 windowSize, IAppEventHandler appEventHandler)
+        public void Initialize(GraphicsDevice gd, ImGuiController controller, Vector2 windowSize, IAppEventHandler appEventHandler)
         {
+            _gd = gd;
+            _controller = controller;
             _windowSize = new Vector2(windowSize.X, 1.0f);
             _appEventHandler = appEventHandler;
 
@@ -436,5 +443,47 @@ namespace Clip_it
             psi.FileName = path;
             System.Diagnostics.Process.Start(psi);
         }
+
+        // テクスチャ作成依頼
+        public void OnFusenRequestCreateTexture(string path, out Texture texture, out IntPtr texId)
+        {
+             CreateTextureFromFile(path, path, out texture, out texId);
+        }
+
+        public void CreateTextureFromFile(string name, string filePath, out Texture texture, out IntPtr texId)
+        {
+            // テクスチャ作成
+            Bitmap bmp = new Bitmap(filePath);
+            var tex = _gd.ResourceFactory.CreateTexture(
+                TextureDescription.Texture2D(
+                (uint)bmp.Width,
+                (uint)bmp.Height,
+                1,
+                1,
+                Veldrid.PixelFormat.B8_G8_R8_A8_UNorm,
+                TextureUsage.Sampled));
+            tex.Name = name;
+
+            bmp.MakeTransparent();
+            BitmapData bmpData = bmp.LockBits(new System.Drawing.Rectangle(0, 0, bmp.Width, bmp.Height), ImageLockMode.ReadOnly, System.Drawing.Imaging.PixelFormat.Format32bppArgb);
+
+            _gd.UpdateTexture(
+                tex,
+                bmpData.Scan0,
+                (uint)(bmpData.Width * bmpData.Height * 4),
+                0,
+                0,
+                0,
+                tex.Width,
+                tex.Height,
+                1,
+                0,
+                0);
+            bmp.UnlockBits(bmpData);
+
+            texture = tex;
+            texId = _controller.GetOrCreateImGuiBinding(_gd.ResourceFactory, tex);
+        }
+
     }
 }

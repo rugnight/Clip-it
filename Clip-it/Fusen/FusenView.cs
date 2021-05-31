@@ -71,6 +71,9 @@ namespace Clip_it
                 DispPathButtons(fusen);
 
                 ImGui.Spacing();
+                DispImages(fusen);
+
+                ImGui.Spacing();
                 DispDateButtons(fusen);
             }
             else
@@ -227,6 +230,19 @@ namespace Clip_it
             foreach (var key in changed)
             {
                 fusen.Dates[key] = !fusen.Dates[key];
+            }
+        }
+
+
+        /// <summary>
+        /// 画像の表示
+        /// </summary>
+        /// <param name="fusen"></param>
+        void DispImages(Fusen fusen)
+        {
+            foreach (var texInfo in fusen.Images.Values)
+            {
+                ImGui.Image(texInfo.texId, new Vector2(INPUT_WIDTH, texInfo.texture.Height * (INPUT_WIDTH / texInfo.texture.Width)));
             }
         }
 

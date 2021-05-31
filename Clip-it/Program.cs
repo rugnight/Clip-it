@@ -4,6 +4,12 @@ using Veldrid;
 using Veldrid.Sdl2;
 using Veldrid.StartupUtilities;
 using ImGuiNET;
+using System.Windows.Forms;
+using System.Drawing;
+using System.IO;
+using System.Runtime.InteropServices;
+using System;
+using System.Drawing.Imaging;
 
 namespace Clip_it
 {
@@ -43,8 +49,8 @@ namespace Clip_it
                 new GraphicsDeviceOptions(false, null, true, ResourceBindingModel.Improved, true, true),
                 out _window,
                 out _gd);
-            _cl = _gd.ResourceFactory.CreateCommandList();
 
+            _cl = _gd.ResourceFactory.CreateCommandList();
             _window.BorderVisible = false;
 
             // キー入力
@@ -83,7 +89,7 @@ namespace Clip_it
             _controller = new ImGuiController(_gd, _gd.MainSwapchain.Framebuffer.OutputDescription, _window.Width, _window.Height);
 
             // アプリケーション初期化
-            _app.Initialize(new Vector2(_window.Width, _window.Height), this);
+            _app.Initialize(_gd, _controller, new Vector2(_window.Width, _window.Height), this);
 
             // Main application loop
             while (_window.Exists)
@@ -102,9 +108,10 @@ namespace Clip_it
                     _window.Close();
                 }
 
+
                 _cl.Begin();
                 _cl.SetFramebuffer(_gd.MainSwapchain.Framebuffer);
-                _cl.ClearColorTarget(0, new RgbaFloat(_clearColor.X, _clearColor.Y, _clearColor.Z, 0.5f));
+                _cl.ClearColorTarget(0, new RgbaFloat(_clearColor.X, _clearColor.Y, _clearColor.Z, 1.0f));
                 _controller.Render(_gd, _cl);
                 _cl.End();
                 _gd.SubmitCommands(_cl);

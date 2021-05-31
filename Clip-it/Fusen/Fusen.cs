@@ -5,6 +5,7 @@ using AngleSharp.Html.Dom;
 using AngleSharp.Html.Parser;
 using System.Threading.Tasks;
 using System.Numerics;
+using Veldrid;
 
 namespace Clip_it
 {
@@ -17,7 +18,20 @@ namespace Clip_it
         public void OnFusenRequestUrlTitle(string url, Action<string> callback);
         public void OnFusenRequestOpenUrl(string url);
         public void OnFusenRequestOpenPath(string path);
-    } 
+        public void OnFusenRequestCreateTexture(string path, out Texture texture, out IntPtr texId);
+    }
+
+    // テクスチャの情報
+    struct TextureInfo
+    {
+        public Texture texture;
+        public IntPtr texId;
+        public TextureInfo(Texture texture, IntPtr texId)
+        {
+            this.texId = texId;
+            this.texture = texture;
+        }
+    }
 
     /// <summary>
     /// 付箋
@@ -34,6 +48,7 @@ namespace Clip_it
         public Dictionary<string, LinkModel> Urls { get; private set; } = new Dictionary<string, LinkModel>();
         public Dictionary<string, string> Paths { get; private set; } = new Dictionary<string, string>();
         public Dictionary<string, bool> Dates { get; private set; } = new Dictionary<string, bool>();
+        public Dictionary<string, TextureInfo> Images { get; private set; } = new Dictionary<string, TextureInfo>();
 
         /// <summary>
         /// コンストラクタ
@@ -150,6 +165,22 @@ namespace Clip_it
                     continue;
                 }
                 this.Paths[path] = item;
+
+                switch (System.IO.Path.GetExtension(path))
+                {
+                    case ".png":
+                    case ".jpg":
+                    case ".jpeg":
+                    case ".bmp":
+                        IntPtr texId;
+                        Texture texture;
+                        _eventHandler.OnFusenRequestCreateTexture(path, out texture, out texId);
+                        this.Images[path] = new TextureInfo(texture, texId);
+                        break;
+
+                    default:
+                        break;
+                }
             }
 
             // URL

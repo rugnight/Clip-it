@@ -2,13 +2,16 @@
 
   <PropertyGroup>
     <OutputType>WinExe</OutputType>
-    <TargetFramework>net5.0</TargetFramework>
+    <TargetFramework>netcoreapp3.1</TargetFramework>
     <RootNamespace>Clip_it</RootNamespace>
     <AssemblyName>Clip-it</AssemblyName>
     <Authors>rugnight</Authors>
     <PackageProjectUrl>https://github.com/rugnight/Clip-it</PackageProjectUrl>
     <RepositoryUrl>git@github.com:rugnight/Clip-it.git</RepositoryUrl>
     <RepositoryType>git</RepositoryType>
+
+    <!-- Windows.Formsを使うための設定 -->
+	<UseWindowsForms>true</UseWindowsForms>
 
     <!-- シングルバイナリ出力設定 -->
     <PublishSingleFile>true</PublishSingleFile>
@@ -26,6 +29,15 @@
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
   </PropertyGroup>
+
+  <ItemGroup>
+    <COMReference Include="{215d64d2-031c-33c7-96e3-61794cd1ee61}">
+      <WrapperTool>tlbimp</WrapperTool>
+      <VersionMinor>4</VersionMinor>
+      <VersionMajor>2</VersionMajor>
+      <Guid>215d64d2-031c-33c7-96e3-61794cd1ee61</Guid>
+    </COMReference>
+  </ItemGroup>
 
   <ItemGroup>
     <PackageReference Include="AngleSharp" Version="0.15.0" />
