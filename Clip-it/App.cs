@@ -217,6 +217,15 @@ namespace Clip_it
                 _bAlighn = true;
             }
 
+            // 内容のコピー
+            if (io.KeyCtrl && ImGui.IsKeyPressed((int)Key.C, false) && ImGui.IsWindowFocused(ImGuiFocusedFlags.AnyWindow))
+            {
+                var activeFusen = fusens.Find(a => a.IsActive());
+                if (activeFusen != null)
+                {
+                    ImGui.SetClipboardText(activeFusen.Model.Text);
+                }
+            }
 
             // 削除
             if (io.KeyCtrl && ImGui.IsKeyPressed((int)Key.W, false) && ImGui.IsWindowFocused(ImGuiFocusedFlags.AnyWindow))
