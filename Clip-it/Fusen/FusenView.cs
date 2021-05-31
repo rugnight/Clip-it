@@ -137,6 +137,10 @@ namespace Clip_it
                 unitSize = 1 + (int)textSize.X / (int)INPUT_WIDTH;
             }
 
+            // 試しにユニット上限数
+            unitSize = Math.Min(2, unitSize);
+
+
             var style = ImGui.GetStyle();
             var innerSpace = style.ItemInnerSpacing;
             var itemSpace = style.ItemSpacing;
