@@ -105,14 +105,6 @@ namespace Clip_it
             // ショートカットキーの処理
             UpdateShortcutKeys();
 
-            //ImGui.Begin("Test");
-            //ImGui.SetKeyboardFocusHere(2);
-            //string hoge = "";
-            //ImGui.InputText("hoge", ref hoge, 64);
-            //ImGui.InputText("fuga", ref hoge, 64);
-            //ImGui.InputText("piyo", ref hoge, 64);
-            //ImGui.End();
-
             // 付箋を描画
             if (_bAlighn)
             {
@@ -122,6 +114,7 @@ namespace Clip_it
             {
                 FusenUpdate();
             }
+
 
 
             return !_bQuit;
