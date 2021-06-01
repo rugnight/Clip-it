@@ -6,6 +6,7 @@ using AngleSharp.Html.Parser;
 using System.Threading.Tasks;
 using System.Numerics;
 using Veldrid;
+using System.Diagnostics;
 
 namespace Clip_it
 {
@@ -166,6 +167,9 @@ namespace Clip_it
             var paths = this.Model.GetPaths();
             foreach (var path in paths)
             {
+                // 画像は独自にキャッシュしているので、ファイルが存在しなくてもある可能性がある
+                LoadImage(path);
+
                 var item = "";
                 if (System.IO.File.Exists(path))
                 {
@@ -179,13 +183,11 @@ namespace Clip_it
                 {
                     continue;
                 }
-
                 if (this.Paths.ContainsKey(path))
                 {
                     continue;
                 }
                 this.Paths[path] = item;
-                LoadImage(path);
             }
 
             // URL
@@ -215,6 +217,8 @@ namespace Clip_it
 
         void LoadImage(string uri)
         {
+            Debug.Assert(!string.IsNullOrEmpty(uri));
+
             switch (System.IO.Path.GetExtension(uri))
             {
                 case ".png":

@@ -33,6 +33,7 @@ namespace Clip_it
         ClipItDB _db;
         FusenTable _fusenTable;
         LinkTable _linkTable;
+        MediaTable _mediaTable;
 
         GraphicsDevice _gd;
         ImGuiController _controller;
@@ -73,6 +74,8 @@ namespace Clip_it
             _fusenTable.CreateTable();
             _linkTable = new LinkTable(_db);
             _linkTable.CreateTable();
+            _mediaTable = new MediaTable(_db);
+            _mediaTable.CreateTable();
 
             // DBの付箋から読み込み
             foreach (var model in _fusenTable.Load())
@@ -377,7 +380,6 @@ namespace Clip_it
                 return info;
             }
 
-            var title = "";
             // 指定したサイトのHTMLをストリームで取得する
             var doc = default(IHtmlDocument);
             try
@@ -490,6 +492,22 @@ namespace Clip_it
         /// <param name="texId"></param>
         public void OnFusenRequestCreateTexture(string path, Action<Texture, IntPtr> onComplete)
         {
+            // DBを確認
+            var dbModels = _mediaTable.Load(new List<string>() { path });
+            if (0 < dbModels.Count)
+            {
+                var model = dbModels[0];
+                using (var ms = new MemoryStream(Convert.FromBase64String(model.Base64)))
+                {
+                    Texture texture;
+                    IntPtr texId;
+                    CreateTexture(model.Uri.ToString(), ms, out texture, out texId);
+                    onComplete?.Invoke(texture, texId);
+                }
+                return;
+            }
+
+            // 作成
             if (Uri.IsWellFormedUriString(path, UriKind.Absolute))
             {
                 CreateTextureFromWeb(path, (texture, texId) => onComplete?.Invoke(texture, texId));
@@ -569,6 +587,18 @@ namespace Clip_it
                 0,
                 0);
             bmp.UnlockBits(bmpData);
+
+            // DBに登録
+            stream.Position = 0;
+            using (var br = new BinaryReader(stream))
+            {
+                var bytes = br.ReadBytes((int)stream.Length);
+                if (bytes != null && 0 < bytes.Length)
+                {
+                    string base64 = Convert.ToBase64String(bytes);
+                    _mediaTable.Save(new List<MediaModel>() { new MediaModel(name, base64) });
+                }
+            }
 
             texture = tex;
             texId = _controller.GetOrCreateImGuiBinding(_gd.ResourceFactory, tex);
