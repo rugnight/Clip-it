@@ -56,21 +56,25 @@ namespace Clip_it
         public void Disp(Fusen fusen)
         {
             _bActive = false;
-            if (!_bEnableWindow)
-            {
-                return;
-            }
 
             var model = fusen.Model;
             var text = model.Text;
             var windowsFlags = ImGuiWindowFlags.AlwaysAutoResize;
 
+            if (!_bEnableWindow)
+            {
+                return;
+            }
+
+            // ウィンドウサイズの設定
+            var w = INPUT_WIDTH + 30;
+            ImGui.SetNextWindowSizeConstraints(new Vector2(w, 100), new Vector2(w, float.MaxValue));
+
             // 大量のスペースはタイトルバーにIDを表示しないため
             // 改行は ini ファイルが機能しなくなるため入れてはいけない
             if (ImGui.Begin($"{model.Id.ToString()}".PadLeft('_'), ref _bEnableWindow, windowsFlags))
             {
-                var w = CalcWindowWidth(fusen.Model.Text);
-
+                DispEditPopup(model);
                 DispText(model, w);
 
                 ImGui.Spacing();
@@ -123,65 +127,29 @@ namespace Clip_it
             _setFocusFrame = 2;
         }
 
-
         /// <summary>
-        /// テキストの幅からウィンドウの幅を算出する
+        /// 編集ダイアログの表示
         /// </summary>
-        /// <returns></returns>
-        float CalcWindowWidth(string text)
+        /// <param name="model"></param>
+        /// <param name="width"></param>
+        void DispEditPopup(FusenModel model)
         {
-            var textSize = ImGui.CalcTextSize(text);
-            var unitSize = 1;
-            if (INPUT_WIDTH < textSize.X)
-            {
-                unitSize = 1 + (int)textSize.X / (int)INPUT_WIDTH;
-            }
+            var w = 1000;
+            var h = 500;
+            var popupName = "編集";
 
-            // 試しにユニット上限数
-            unitSize = Math.Min(2, unitSize);
-
-
-            var style = ImGui.GetStyle();
-            var innerSpace = style.ItemInnerSpacing;
-            var itemSpace = style.ItemSpacing;
-            return INPUT_WIDTH * (unitSize) + (unitSize * 30);
-        }
-
-        /// <summary>
-        /// 本文の表示
-        /// </summary>
-        /// <param name="text"></param>
-        void DispText(FusenModel model, float width)
-        {
             var text = model.Text;
-            var flags = ImGuiTreeNodeFlags.Bullet;
-            // 初回起動時に前回の開閉状態を再現する
-            if (model.OpenedText) 
+            // 本文をダブルクリックしたら編集ダイアログを出す
+            if (!ImGui.IsPopupOpen(popupName) && ImGui.IsWindowHovered() && ImGui.IsMouseDoubleClicked(ImGuiMouseButton.Left))
             {
-                flags |= ImGuiTreeNodeFlags.DefaultOpen;
+                ImGui.OpenPopup(popupName);
+                // ダイアログの表示位置を設定
+                ImGui.SetNextWindowPos(new Vector2(20));
+                // 開いたときにメモ欄にフォーカスを移す
+                this.SetFocusInput();
             }
-
-            // ヘッダのタイトルは空文字だとテキストボックス編集ができなくなるので
-            // 内容が空のときは空白を入れておく
-            var title = (0 < text.Length) ? text.Substring(0, Math.Min(text.Length, MEMO_HEADER_TEXT_COUNT)) : " ";
-
-            // 開閉状態を保存する
-            model.OpenedText = ImGui.CollapsingHeader(title, flags);
-
-            // 開いたときにメモ欄にフォーカスを移す
-            if (ImGui.IsItemToggledOpen())
+            if (ImGui.BeginPopupModal(popupName))
             {
-                SetFocusInput();
-            }
-            if (model.OpenedText)
-            {
-                var textSize = ImGui.CalcTextSize(model.Text);
-                var style = ImGui.GetStyle();
-                var innerSpace = style.ItemInnerSpacing;
-                var itemSpace = style.ItemSpacing;
-                var w = width;
-                var h = (textSize.Y * 1.0f) + (innerSpace.Y * 1.0f) + (itemSpace.Y * 1.0f) + 30.0f;
-
                 // フォーカス設定フラグが立っていたら、テキストボックスにフォーカスする
                 if (0 < _setFocusFrame)
                 {
@@ -208,7 +176,40 @@ namespace Clip_it
                 {
                     OnChangeAndEditEnd?.Invoke();
                 }
+
+                if (ImGui.Button("閉じる"))
+                {
+                    ImGui.CloseCurrentPopup();
+                }
+                ImGui.EndPopup();
             }
+        }
+
+        /// <summary>
+        /// 本文の表示
+        /// </summary>
+        /// <param name="text"></param>
+        void DispText(FusenModel model, float width)
+        {
+            var text = model.Text;
+            var flags = ImGuiTreeNodeFlags.None;
+            // 初回起動時に前回の開閉状態を再現する
+            if (model.OpenedText) 
+            {
+                flags |= ImGuiTreeNodeFlags.DefaultOpen;
+            }
+
+            // ヘッダのタイトルは空文字だとテキストボックス編集ができなくなるので
+            // 内容が空のときは空白を入れておく
+            var title = (0 < text.Length) ? text.Substring(0, Math.Min(text.Length, MEMO_HEADER_TEXT_COUNT)) : " ";
+
+            // 本文表示
+            model.OpenedText = ImGui.CollapsingHeader(title, flags);
+            if (model.OpenedText)
+            {
+                ImGui.TextWrapped(text);
+            }
+
         }
 
         /// <summary>
@@ -222,7 +223,7 @@ namespace Clip_it
                 return;
             }
 
-            bool bOpen = ImGui.CollapsingHeader("URL", ImGuiTreeNodeFlags.DefaultOpen | ImGuiTreeNodeFlags.Bullet);
+            bool bOpen = ImGui.CollapsingHeader("URL", ImGuiTreeNodeFlags.DefaultOpen | ImGuiTreeNodeFlags.None);
             if (!bOpen)
             {
                 return;
@@ -253,7 +254,7 @@ namespace Clip_it
                 return;
             }
 
-            FilesOpend = ImGui.CollapsingHeader("ファイル", ImGuiTreeNodeFlags.DefaultOpen | ImGuiTreeNodeFlags.Bullet);
+            FilesOpend = ImGui.CollapsingHeader("ファイル", ImGuiTreeNodeFlags.DefaultOpen | ImGuiTreeNodeFlags.None);
             if (!FilesOpend)
             {
                 return;
@@ -338,7 +339,7 @@ namespace Clip_it
                 return;
             }
 
-            bool bOpen = ImGui.CollapsingHeader("画像", ImGuiTreeNodeFlags.DefaultOpen | ImGuiTreeNodeFlags.Bullet);
+            bool bOpen = ImGui.CollapsingHeader("画像", ImGuiTreeNodeFlags.DefaultOpen | ImGuiTreeNodeFlags.None);
             if (!bOpen)
             {
                 return;

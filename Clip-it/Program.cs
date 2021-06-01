@@ -36,15 +36,19 @@ namespace Clip_it
         // 処理の実行
         void Run()
         {
+
+            // Verlrid作成
+#if DEBUG
+            //ディスプレイの高さ
+            int displayH = System.Windows.Forms.Screen.PrimaryScreen.Bounds.Height / 2;
+            //ディスプレイの幅
+            int displayW = System.Windows.Forms.Screen.PrimaryScreen.Bounds.Width / 2;
+            var flag = WindowState.Normal;
+#else
             //ディスプレイの高さ
             int displayH = System.Windows.Forms.Screen.PrimaryScreen.Bounds.Height;
             //ディスプレイの幅
             int displayW = System.Windows.Forms.Screen.PrimaryScreen.Bounds.Width;
-
-            // Verlrid作成
-#if DEBUG
-            var flag = WindowState.Normal;
-#else
             var flag = WindowState.BorderlessFullScreen;
 #endif
             VeldridStartup.CreateWindowAndGraphicsDevice(
