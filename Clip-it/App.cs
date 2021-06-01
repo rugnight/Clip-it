@@ -13,9 +13,11 @@ using System.Drawing.Imaging;
 using System.Drawing;
 using System.IO;
 using Microsoft.Toolkit.Uwp.Notifications;
+using System.Web;
 
 namespace Clip_it
 {
+
     // アプリケーションイベントを外部へ通知するハンドラ
     interface IAppEventHandler
     {
@@ -363,13 +365,16 @@ namespace Clip_it
         /// </summary>
         /// <param name="url"></param>
         /// <returns></returns>
-        async Task<string> GetURLTitle(string url)
+        async Task<LinkModel> GetURLTitle(string url)
         {
+            var info = new LinkModel();
+
             // DBにあればそれを使う
             var titles = _linkTable.Load(new List<string>() { url });
             if (0 < titles.Count)
             {
-                return titles[0].Title;
+                info.Title = titles[0].Title;
+                return info;
             }
 
             var title = "";
@@ -393,17 +398,19 @@ namespace Clip_it
                 if (doc != null)
                 {
                     // HTMLからtitleタグの値(サイトのタイトルとして表示される部分)を取得する
-                    title = doc.Title;
+                    info.Title = doc.QuerySelector("meta[property='og:title']")?.GetAttribute("content") ?? doc.Title;
+                    var ogImageUrl = new Uri(doc.QuerySelector("meta[property='og:image']")?.GetAttribute("content") ?? "");
+                    info.OgImageUrl = ogImageUrl.ToString().Replace(ogImageUrl.Query, "");
                     // DBに登録
-                    _linkTable.Save(new List<LinkModel>() { new LinkModel(url, title) });
+                    _linkTable.Save(new List<LinkModel>() { info });
                 }
                 else
                 {
-                    title = "";
+                    info.Title  = "";
                 }
             }
 
-            return title;
+            return info;
         }
 
         /// <summary>
@@ -430,7 +437,7 @@ namespace Clip_it
         /// </summary>
         /// <param name="fusen"></param>
         /// <param name="callback"></param>
-        public async void OnFusenRequestUrlTitle(string url, Action<string> callback)
+        public async void OnFusenRequestWebInfo(string url, Action<LinkModel> callback)
         {
             callback?.Invoke(await GetURLTitle(url));
         }

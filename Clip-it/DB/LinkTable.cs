@@ -30,7 +30,7 @@ namespace Clip_it
             {
                 using (SQLiteCommand command = connection.CreateCommand())
                 {
-                    command.CommandText = $"create table {TB_NAME}(link TEXT PRIMARY KEY, title TEXT)";
+                    command.CommandText = $"create table {TB_NAME}(link TEXT PRIMARY KEY, title TEXT, og_image_url TEXT)";
                     command.ExecuteNonQuery();
                 }
             }
@@ -63,13 +63,15 @@ namespace Clip_it
                     else
                     { 
                         // インサート
-                        cmd.CommandText = $"REPLACE INTO {TB_NAME} (link, title) VALUES (@Link, @Title)";
+                        cmd.CommandText = $"REPLACE INTO {TB_NAME} (link, title, og_image_url) VALUES (@Link, @Title, @Og_Image_Url)";
                         // パラメータセット
                         cmd.Parameters.Add("Link", System.Data.DbType.String);
                         cmd.Parameters.Add("Title", System.Data.DbType.String);
+                        cmd.Parameters.Add("Og_Image_Url", System.Data.DbType.String);
                         // データ追加
                         cmd.Parameters["Link"].Value = model.Link;
                         cmd.Parameters["Title"].Value = model.Title;
+                        cmd.Parameters["Og_Image_Url"].Value = model.OgImageUrl;
                     }
                     cmd.ExecuteNonQuery();
 
@@ -100,7 +102,11 @@ namespace Clip_it
                 {
                     while (reader.Read())
                     {
-                        var model = new LinkModel(reader["Link"].ToString(), reader["Title"].ToString());
+                        var model = new LinkModel(
+                            reader["Link"].ToString(),
+                            reader["Title"].ToString(),
+                            reader["Og_Image_Url"].ToString()
+                            );
                         result.Add(model);
                     }
                 }

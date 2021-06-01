@@ -15,7 +15,7 @@ namespace Clip_it
     interface IFusenEventHandler
     {
         public void OnFusenChangeAndEditEnd(Fusen fusen);
-        public void OnFusenRequestUrlTitle(string url, Action<string> callback);
+        public void OnFusenRequestWebInfo(string url, Action<LinkModel> callback);
         public void OnFusenRequestOpenUrl(string url);
         public void OnFusenRequestOpenPath(string path);
         public void OnFusenRequestCreateTexture(string path, Action<Texture, IntPtr> onComplete);
@@ -185,24 +185,7 @@ namespace Clip_it
                     continue;
                 }
                 this.Paths[path] = item;
-
-                switch (System.IO.Path.GetExtension(path))
-                {
-                    case ".png":
-                    case ".jpg":
-                    case ".jpeg":
-                    case ".bmp":
-                        _eventHandler.OnFusenRequestCreateTexture(path,
-                            (texture, texId) =>
-                            {
-                                this.Images[path] = new TextureInfo(texture, texId);
-                            }
-                            );
-                        break;
-
-                    default:
-                        break;
-                }
+                LoadImage(path);
             }
 
             // URL
@@ -214,35 +197,41 @@ namespace Clip_it
                 {
                     continue;
                 }
-                this.Urls[url] = new LinkModel(url, "");
+                this.Urls[url] = new LinkModel(url, "", "");
 
                 // 非同期通信でタイトル取得
-                this._eventHandler?.OnFusenRequestUrlTitle(
+                this._eventHandler?.OnFusenRequestWebInfo(
                     url,
-                    (title) =>
+                    (webInfo) =>
                     {
-                        this.Urls[url].Title = title;
+                        this.Urls[url].Title = webInfo.Title;
+                        LoadImage(webInfo.OgImageUrl);
                     }
                 );
-                switch (System.IO.Path.GetExtension(url))
-                {
-                    case ".png":
-                    case ".jpg":
-                    case ".jpeg":
-                    case ".bmp":
-                        _eventHandler.OnFusenRequestCreateTexture(
-                            url,
-                            (texture, texId) =>
-                            {
-                                this.Images[url] = new TextureInfo(texture, texId);
-                            }
-                            );
-                        break;
+                LoadImage(url);
+            }
+        }
 
-                    default:
-                        break;
-                }
-                
+
+        void LoadImage(string uri)
+        {
+            switch (System.IO.Path.GetExtension(uri))
+            {
+                case ".png":
+                case ".jpg":
+                case ".jpeg":
+                case ".bmp":
+                    _eventHandler.OnFusenRequestCreateTexture(
+                        uri,
+                        (texture, texId) =>
+                        {
+                            this.Images[uri] = new TextureInfo(texture, texId);
+                        }
+                        );
+                    break;
+
+                default:
+                    break;
             }
         }
 

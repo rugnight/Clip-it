@@ -15,16 +15,19 @@ namespace Clip_it
 
         public string Title { get; set; } = "";
 
+        public string OgImageUrl { get; set; } = "";
+
         public bool Deleted { get; set; } = false;
 
         public LinkModel()
         {
         }
 
-        public LinkModel(string link, string title)
+        public LinkModel(string link, string title, string ogImageUrl)
         {
             this.Link = link;
             this.Title = title;
+            this.OgImageUrl = ogImageUrl;
         }
     };
 }
