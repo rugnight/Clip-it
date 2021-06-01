@@ -399,8 +399,16 @@ namespace Clip_it
                 {
                     // HTMLからtitleタグの値(サイトのタイトルとして表示される部分)を取得する
                     info.Title = doc.QuerySelector("meta[property='og:title']")?.GetAttribute("content") ?? doc.Title;
-                    var ogImageUrl = new Uri(doc.QuerySelector("meta[property='og:image']")?.GetAttribute("content") ?? "");
-                    info.OgImageUrl = ogImageUrl.ToString().Replace(ogImageUrl.Query, "");
+
+                    var ogImageUrl = doc.QuerySelector("meta[property='og:image']")?.GetAttribute("content");
+                    if (ogImageUrl == null)
+                    {
+                        info.OgImageUrl = "";
+                    }
+                    else
+                    {
+                        info.OgImageUrl = ogImageUrl.ToString().Replace(new Uri(ogImageUrl).Query, "");
+                    }
                     // DBに登録
                     _linkTable.Save(new List<LinkModel>() { info });
                 }
