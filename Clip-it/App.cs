@@ -407,7 +407,15 @@ namespace Clip_it
                     }
                     else
                     {
-                        info.OgImageUrl = ogImageUrl.ToString().Replace(new Uri(ogImageUrl).Query, "");
+                        var query = new Uri(ogImageUrl).Query;
+                        if (string.IsNullOrEmpty(query))
+                        {
+                            info.OgImageUrl = ogImageUrl.ToString();
+                        }
+                        else
+                        {
+                            info.OgImageUrl = ogImageUrl.ToString().Replace(query, "");
+                        }
                     }
                     // DBに登録
                     _linkTable.Save(new List<LinkModel>() { info });
