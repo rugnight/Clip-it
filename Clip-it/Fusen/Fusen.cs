@@ -19,7 +19,7 @@ namespace Clip_it
         public void OnFusenRequestWebInfo(string url, Action<LinkModel> callback);
         public void OnFusenRequestOpenUrl(string url);
         public void OnFusenRequestOpenPath(string path);
-        public void OnFusenRequestCreateTexture(string path, Action<Texture, IntPtr> onComplete);
+        public void OnFusenRequestCreateTexture(Uri uri, Action<Texture, IntPtr> onComplete);
         public void OnFusenRequestNotifyToggle(Fusen fusen, DateTime dateTime, bool bOn);
     }
 
@@ -215,29 +215,39 @@ namespace Clip_it
         }
 
 
-        void LoadImage(string uri)
+        /// <summary>
+        /// 画像の読み込み
+        /// </summary>
+        /// <param name="path"></param>
+        void LoadImage(string path)
         {
-            Debug.Assert(!string.IsNullOrEmpty(uri));
-
-            switch (System.IO.Path.GetExtension(uri))
+            try
             {
-                case ".png":
-                case ".jpg":
-                case ".jpeg":
-                case ".bmp":
-                    _eventHandler.OnFusenRequestCreateTexture(
-                        uri,
-                        (texture, texId) =>
-                        {
-                            this.Images[uri] = new TextureInfo(texture, texId);
-                        }
-                        );
-                    break;
+                var uri = new Uri(path);
+                switch (System.IO.Path.GetExtension(uri.ToString()))
+                {
+                    case ".png":
+                    case ".jpg":
+                    case ".jpeg":
+                    case ".bmp":
+                    case ".gif":
+                    case ".ico":
+                        _eventHandler.OnFusenRequestCreateTexture(
+                            uri,
+                            (texture, texId) =>
+                            {
+                                this.Images[uri.ToString()] = new TextureInfo(texture, texId);
+                            }
+                            );
+                        break;
 
-                default:
-                    break;
+                    default:
+                        break;
+                }
+            }
+            catch (System.Exception e)
+            {
             }
         }
-
     }
 }

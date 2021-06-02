@@ -490,10 +490,10 @@ namespace Clip_it
         /// <param name="path"></param>
         /// <param name="texture"></param>
         /// <param name="texId"></param>
-        public void OnFusenRequestCreateTexture(string path, Action<Texture, IntPtr> onComplete)
+        public void OnFusenRequestCreateTexture(Uri uri, Action<Texture, IntPtr> onComplete)
         {
             // DBを確認
-            var dbModels = _mediaTable.Load(new List<string>() { path });
+            var dbModels = _mediaTable.Load(new List<string>() { uri.ToString() });
             if (0 < dbModels.Count)
             {
                 var model = dbModels[0];
@@ -508,47 +508,42 @@ namespace Clip_it
             }
 
             // 作成
-            if (Uri.IsWellFormedUriString(path, UriKind.Absolute))
-            {
-                CreateTextureFromWeb(path, (texture, texId) => onComplete?.Invoke(texture, texId));
-            }
-            else
-            {
-                Texture texture;
-                IntPtr texId;
-                CreateTextureFromFile(path, path, out texture, out texId);
-                onComplete?.Invoke(texture, texId);
-            }
+            DownloadAndCreateTexture(uri, (texture, texId) => onComplete?.Invoke(texture, texId));
         }
 
         /// <summary>
-        /// ファイルからテクスチャを作成
+        /// テクスチャの作成
         /// </summary>
-        /// <param name="name"></param>
-        /// <param name="filePath"></param>
-        /// <param name="texture"></param>
-        /// <param name="texId"></param>
-        void CreateTextureFromFile(string name, string filePath, out Texture texture, out IntPtr texId)
+        /// <param name="url"></param>
+        /// <param name="onComplete"></param>
+        async void DownloadAndCreateTexture(Uri uri, Action<Texture, IntPtr>  onComplete)
         {
-            using (var fs = new FileStream(filePath, FileMode.Open))
+            if (uri.IsFile)
             {
-                CreateTexture(name, fs, out texture, out texId);
+                using (var client = new System.Net.WebClient())
+                using (var stream = client.OpenRead(uri))
+                {
+                    IntPtr texId;
+                    Texture texture;
+                    CreateTexture(uri.ToString(), stream, out texture, out texId);
+                    onComplete?.Invoke(texture, texId);
+                }
             }
-            
-        }
-
-        async void CreateTextureFromWeb(string url, Action<Texture, IntPtr>  onComplete)
-        {
-            var client = new HttpClient();
-            HttpResponseMessage res = await client.GetAsync(url, HttpCompletionOption.ResponseContentRead);
-
-            using (var httpStream = await res.Content.ReadAsStreamAsync())
+            else
             {
-                IntPtr texId;
-                Texture texture;
-                CreateTexture(url, httpStream, out texture, out texId);
-                onComplete?.Invoke(texture, texId);
+                using (var client = new HttpClient())
+                {
+                    var res = await client.GetAsync(uri, HttpCompletionOption.ResponseContentRead);
+                    using (var httpStream = await res.Content.ReadAsStreamAsync())
+                    {
+                        IntPtr texId;
+                        Texture texture;
+                        CreateTexture(uri.ToString(), httpStream, out texture, out texId);
+                        onComplete?.Invoke(texture, texId);
+                    }
+                }
             }
+
         }
 
 
