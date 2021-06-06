@@ -17,7 +17,7 @@ namespace Clip_it
     {
         public void OnFusenChangeAndEditEnd(Fusen fusen);
         public void OnFusenRequestWebInfo(string url, Action<LinkModel> callback);
-        public void OnFusenRequestOpenUrl(string url);
+        public void OnFusenRequestOpenUrl(Uri url);
         public void OnFusenRequestOpenPath(string path);
         public void OnFusenRequestCreateTexture(Uri uri, Action<Texture, IntPtr> onComplete);
         public void OnFusenRequestNotifyToggle(Fusen fusen, DateTime dateTime, bool bOn);
@@ -171,23 +171,23 @@ namespace Clip_it
                 LoadImage(path);
 
                 var item = "";
-                if (System.IO.File.Exists(path))
+                if (System.IO.File.Exists(path.LocalPath))
                 {
-                    item = System.IO.Path.GetFileName(path);
+                    item = System.IO.Path.GetFileName(path.LocalPath);
                 }
-                else if (System.IO.Directory.Exists(path))
+                else if (System.IO.Directory.Exists(path.LocalPath))
                 {
-                    item = path;
+                    item = path.LocalPath;
                 }
                 else
                 {
                     continue;
                 }
-                if (this.Paths.ContainsKey(path))
+                if (this.Paths.ContainsKey(path.LocalPath))
                 {
                     continue;
                 }
-                this.Paths[path] = item;
+                this.Paths[path.AbsoluteUri] = item;
             }
 
             // URL
@@ -199,18 +199,18 @@ namespace Clip_it
                 {
                     continue;
                 }
-                this.Urls[url] = new LinkModel(url, "", "");
+                this.Urls[url] = new LinkModel(url);
 
                 // 非同期通信でタイトル取得
                 this._eventHandler?.OnFusenRequestWebInfo(
                     url,
                     (webInfo) =>
                     {
-                        this.Urls[url].Title = webInfo.Title;
-                        LoadImage(webInfo.OgImageUrl);
+                        this.Urls[url] = webInfo;
+                        LoadImage(new UriBuilder(webInfo.OgImageUrl).Uri);
                     }
                 );
-                LoadImage(url);
+                //LoadImage(url);
             }
         }
 
@@ -219,11 +219,10 @@ namespace Clip_it
         /// 画像の読み込み
         /// </summary>
         /// <param name="path"></param>
-        void LoadImage(string path)
+        void LoadImage(Uri uri)
         {
             try
             {
-                var uri = new Uri(path);
                 switch (System.IO.Path.GetExtension(uri.ToString()))
                 {
                     case ".png":

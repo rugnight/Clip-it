@@ -49,35 +49,51 @@ namespace Clip_it
             Debug.Assert(connection != null);
             if (connection == null) return;
 
-            using (SQLiteTransaction trans = connection.BeginTransaction())
+            foreach (var model in models)
             {
-                SQLiteCommand cmd = connection.CreateCommand();
-                foreach (var model in models)
+                using (SQLiteTransaction trans = connection.BeginTransaction())
                 {
-                    // 削除済み
-                    if (model.Deleted)
+                    try
                     {
-                        // デリート
-                        cmd.CommandText = $"DELETE FROM {TB_NAME} WHERE link = '{model.Link}'";
+                        using (SQLiteCommand cmd = connection.CreateCommand())
+                        {
+                            // 削除済み
+                            if (model.Deleted)
+                            {
+                                // デリート
+                                cmd.CommandText = $"DELETE FROM {TB_NAME} WHERE link = '{model.Uri.AbsoluteUri}'";
+                            }
+                            else
+                            {
+                                // インサート
+                                cmd.CommandText = $"REPLACE INTO {TB_NAME} (link, title, og_image_url) VALUES (@Link, @Title, @Og_Image_Url)";
+                                // パラメータセット
+                                cmd.Parameters.Add("Link", System.Data.DbType.String);
+                                cmd.Parameters.Add("Title", System.Data.DbType.String);
+                                cmd.Parameters.Add("Og_Image_Url", System.Data.DbType.String);
+                                // データ追加
+                                cmd.Parameters["Link"].Value = model.Uri.AbsoluteUri;
+                                cmd.Parameters["Title"].Value = model.Title;
+                                cmd.Parameters["Og_Image_Url"].Value = model.OgImageUrl;
+                            }
+                            cmd.ExecuteNonQuery();
+                        }
+                        // コミット
+                        trans.Commit();
                     }
-                    else
-                    { 
-                        // インサート
-                        cmd.CommandText = $"REPLACE INTO {TB_NAME} (link, title, og_image_url) VALUES (@Link, @Title, @Og_Image_Url)";
-                        // パラメータセット
-                        cmd.Parameters.Add("Link", System.Data.DbType.String);
-                        cmd.Parameters.Add("Title", System.Data.DbType.String);
-                        cmd.Parameters.Add("Og_Image_Url", System.Data.DbType.String);
-                        // データ追加
-                        cmd.Parameters["Link"].Value = model.Link;
-                        cmd.Parameters["Title"].Value = model.Title;
-                        cmd.Parameters["Og_Image_Url"].Value = model.OgImageUrl;
+                    catch (System.Data.SQLite.SQLiteException e)
+                    {
+                        // コミット
+                        //trans.Rollback();
+                        Console.WriteLine("LinkModelのSave時にDB例外が発生\n%s", e.ToString());
                     }
-                    cmd.ExecuteNonQuery();
-
+                    catch (System.Exception e)
+                    {
+                        // コミット
+                        trans.Rollback();
+                        Console.WriteLine("LinkModelのSave時にDB例外が発生\n%s", e.ToString());
+                    }
                 }
-                // コミット
-                trans.Commit();
             }
         }
 
@@ -85,7 +101,7 @@ namespace Clip_it
         /// 付箋を読み込み
         /// </summary>
         /// <returns></returns>
-        public List<LinkModel> Load(List<string> urls)
+        public List<LinkModel> Load(List<Uri> urls)
         {
             var result = new List<LinkModel>();
 
@@ -96,7 +112,7 @@ namespace Clip_it
 
             foreach (var url in urls)
             {
-                cmd.CommandText = $"SELECT * FROM {TB_NAME} WHERE link = '{url}'";
+                cmd.CommandText = $"SELECT * FROM {TB_NAME} WHERE link = '{url.ToString()}'";
 
                 using (SQLiteDataReader reader = cmd.ExecuteReader())
                 {

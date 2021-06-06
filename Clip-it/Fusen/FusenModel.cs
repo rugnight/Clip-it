@@ -78,7 +78,7 @@ namespace Clip_it
         }
 
         // テキストに含まれるパスを取得
-        public List<string> GetPaths()
+        public List<Uri> GetPaths()
         {
             return CllectPath(this.Text);
         }
@@ -111,14 +111,21 @@ namespace Clip_it
 
         // テキストに含まれるファイルパスを取得
 
-        static List<string> CllectPath(string text)
+        static List<Uri> CllectPath(string text)
         {
-            var result = new List<string>();
+            var result = new List<Uri>();
 
             var reg = new Regex(@"(?:(?:(?:\b[a-z]:|\\\\[a-z0-9_.$]+\\[a-z0-9_.$]+)\\|\\?[^\\/:*?""<>|\r\n]+\\?)(?:[^\\/:*?""<>|\r\n]+\\)*[^\\/:*?""<>|\r\n]*)", RegexOptions.IgnoreCase | RegexOptions.IgnorePatternWhitespace);
             foreach (Match match in reg.Matches(text))
             {
-                result.Add(match.Value);
+                try
+                {
+                    var url = new Uri(match.Value);
+                    result.Add(url);
+                }
+                catch (Exception e)
+                {
+                }
             }
 
             return result;

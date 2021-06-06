@@ -370,14 +370,14 @@ namespace Clip_it
         /// <returns></returns>
         async Task<LinkModel> GetURLTitle(string url)
         {
-            var info = new LinkModel();
+            var info = new LinkModel(url);
+            var uri = new Uri(url);
 
             // DBにあればそれを使う
-            var titles = _linkTable.Load(new List<string>() { url });
+            var titles = _linkTable.Load(new List<Uri>() { uri } );
             if (0 < titles.Count)
             {
-                info.Title = titles[0].Title;
-                return info;
+                return titles[0];
             }
 
             // 指定したサイトのHTMLをストリームで取得する
@@ -385,7 +385,7 @@ namespace Clip_it
             try
             {
                 using (var client = new HttpClient())
-                using (var stream = await client.GetStreamAsync(new Uri(url)))
+                using (var stream = await client.GetStreamAsync(uri))
                 {
                     // AngleSharp.Html.Parser.HtmlParserオブジェクトにHTMLをパースさせる
                     var parser = new HtmlParser();
@@ -464,11 +464,11 @@ namespace Clip_it
         /// URLを開くリクエストが来たときに呼ばれる
         /// </summary>
         /// <param name="url"></param>
-        public void OnFusenRequestOpenUrl(string url)
+        public void OnFusenRequestOpenUrl(Uri url)
         {
             var psi = new System.Diagnostics.ProcessStartInfo();
             psi.UseShellExecute = true;
-            psi.FileName = url;
+            psi.FileName = url.AbsoluteUri;
             System.Diagnostics.Process.Start(psi);
         }
 

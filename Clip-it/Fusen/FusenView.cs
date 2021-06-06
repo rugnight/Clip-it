@@ -11,7 +11,8 @@ namespace Clip_it
     class FusenView
     {
         // 本文入力の幅
-        const float INPUT_WIDTH = 350.0f;
+        const float INPUT_WIDTH = 600.0f;
+        const float IMAGE_H = 150.0f;
 
         // メモのヘッダー部分に表示する文字数
         const int MEMO_HEADER_TEXT_COUNT = 30;
@@ -42,7 +43,7 @@ namespace Clip_it
 
         // 各種UIイベント通知
         public event Action<string> OnChangeText;
-        public event Action<string> OnSelectURL;
+        public event Action<Uri> OnSelectURL;
         public event Action<string> OnSelectPath;
         public event Action<DateTime, bool> OnToggleDateTime;
         public event Action OnChangeAndEditEnd;
@@ -59,7 +60,7 @@ namespace Clip_it
 
             var model = fusen.Model;
             var text = model.Text;
-            var windowsFlags = ImGuiWindowFlags.AlwaysAutoResize;
+            var windowsFlags = ImGuiWindowFlags.AlwaysAutoResize | ImGuiWindowFlags.NoTitleBar;
 
             if (!_bEnableWindow)
             {
@@ -88,7 +89,7 @@ namespace Clip_it
                 DispPathButtons(fusen, w);
 
                 ImGui.Spacing();
-                DispImages(fusen, w);
+                //DispImages(fusen, w);
             }
             else
             {
@@ -140,6 +141,7 @@ namespace Clip_it
 
             var text = model.Text;
             // 本文をダブルクリックしたら編集ダイアログを出す
+            //if (!ImGui.IsPopupOpen(popupName) && ImGui.IsItemClicked() && ImGui.IsMouseDoubleClicked(ImGuiMouseButton.Left))
             if (!ImGui.IsPopupOpen(popupName) && ImGui.IsWindowHovered() && ImGui.IsMouseDoubleClicked(ImGuiMouseButton.Left))
             {
                 ImGui.OpenPopup(popupName);
@@ -194,7 +196,7 @@ namespace Clip_it
             var text = model.Text;
             var flags = ImGuiTreeNodeFlags.None;
             // 初回起動時に前回の開閉状態を再現する
-            if (model.OpenedText) 
+            //if (model.OpenedText) 
             {
                 flags |= ImGuiTreeNodeFlags.DefaultOpen;
             }
@@ -204,9 +206,11 @@ namespace Clip_it
             var title = (0 < text.Length) ? text.Substring(0, Math.Min(text.Length, MEMO_HEADER_TEXT_COUNT)) : " ";
 
             // 本文表示
-            model.OpenedText = ImGui.CollapsingHeader(title, flags);
-            if (model.OpenedText)
+            //model.OpenedText = ImGui.CollapsingHeader(title, flags);
+            //if (model.OpenedText)
             {
+                //ImGui.InputText("", ref text, 1024, ImGuiInputTextFlags.Multiline| ImGuiInputTextFlags.);
+                //ImGui.InputText("", ref text, 1024, new Vector2(width, 300), ImGuiInputTextFlags.Multiline);
                 ImGui.TextWrapped(text);
             }
 
@@ -216,28 +220,67 @@ namespace Clip_it
         /// URLボタンの表示
         /// </summary>
         /// <param name="fusen"></param>
-        void DispURLButtons(Fusen fusen, float width)
+        void DispURLButtons(Fusen fusen, float windowWidth)
         {
             if (fusen.Urls.Count == 0)
             {
                 return;
             }
 
-            bool bOpen = ImGui.CollapsingHeader("URL", ImGuiTreeNodeFlags.DefaultOpen | ImGuiTreeNodeFlags.None);
-            if (!bOpen)
-            {
-                return;
-            }
+            //bool bOpen = ImGui.CollapsingHeader("URL", ImGuiTreeNodeFlags.DefaultOpen | ImGuiTreeNodeFlags.None);
+            //if (!bOpen)
+            //{
+            //    return;
+            //}
 
             // URLボタン
             foreach (var pair in fusen.Urls)
             {
-                var title = string.IsNullOrEmpty(pair.Value.Title) ? pair.Value.Link : pair.Value.Title;
+                var width = windowWidth;
+                var title = string.IsNullOrEmpty(pair.Value.Title) ? pair.Value.Uri.AbsoluteUri : pair.Value.Title;
+                var isClicked = false;
+
+                TextureInfo texInfo;
+                if (fusen.Images.TryGetValue(pair.Value.OgImageUrl, out texInfo))
+                {
+
+                    var h = IMAGE_H;
+                    var w = texInfo.texture.Width * (h / texInfo.texture.Height);
+
+                    ImGui.Image(texInfo.texId, new Vector2(w, h));
+                    isClicked |= (ImGui.IsItemClicked() && ImGui.IsMouseDoubleClicked(ImGuiMouseButton.Left));
+                    ImGui.SameLine();
+
+                    ImGui.TextWrapped(title);
+                    isClicked |= (ImGui.IsItemClicked() && ImGui.IsMouseDoubleClicked(ImGuiMouseButton.Left));
+                }
+                else
+                {
+                    ImGui.TextWrapped(title);
+                    isClicked |= (ImGui.IsItemClicked() && ImGui.IsMouseDoubleClicked(ImGuiMouseButton.Left));
+                }
+
+                if (isClicked)
+                {
+                    this.OnSelectURL?.Invoke(pair.Value.Uri);
+                }
+
+
+                // 画像
+                //TextureInfo texInfo;
+                //if (fusen.Images.TryGetValue(pair.Value.OgImageUrl, out texInfo))
+                //{
+                //    var h = 150.0f;
+                //    var w = texInfo.texture.Width * (h / texInfo.texture.Height);
+                //    ImGui.Image(texInfo.texId, new Vector2(w, h));
+
+                //    width = width - w;
+                //}
 
                 // タイトル
-                if (ImGui.Button(title, new Vector2(width, 20)))
+                //if (ImGui.Button(title, new Vector2(width, 150)))
                 {
-                    this.OnSelectURL?.Invoke(pair.Value.Link);
+                    //this.OnSelectURL?.Invoke(pair.Value.Uri);
                 }
             }
         }
@@ -247,28 +290,58 @@ namespace Clip_it
         /// </summary>
         /// <param name="fusen"></param>
         bool FilesOpend = false;
-        void DispPathButtons(Fusen fusen, float width)
+        void DispPathButtons(Fusen fusen, float windowWidth)
         {
             if (fusen.Paths.Count == 0)
             {
                 return;
             }
 
-            FilesOpend = ImGui.CollapsingHeader("ファイル", ImGuiTreeNodeFlags.DefaultOpen | ImGuiTreeNodeFlags.None);
-            if (!FilesOpend)
-            {
-                return;
-            }
+            //FilesOpend = ImGui.CollapsingHeader("ファイル", ImGuiTreeNodeFlags.DefaultOpen | ImGuiTreeNodeFlags.None);
+            //if (!FilesOpend)
+            //{
+            //    return;
+            //}
 
             foreach (var pair in fusen.Paths)
             {
+                var width = windowWidth;
+                //var title = string.IsNullOrEmpty(pair.Value.Title) ? pair.Value.Uri.AbsoluteUri : pair.Value.Title;
                 var title = string.IsNullOrEmpty(pair.Value) ? pair.Key : pair.Value;
+                var isClicked = false;
 
-                // タイトル
-                if (ImGui.Button(title, new Vector2(width, 20)))
+                TextureInfo texInfo;
+                if (fusen.Images.TryGetValue(pair.Key, out texInfo))
+                {
+
+                    var h = IMAGE_H;
+                    var w = texInfo.texture.Width * (h / texInfo.texture.Height);
+
+                    ImGui.Image(texInfo.texId, new Vector2(w, h));
+                    isClicked |= (ImGui.IsItemClicked() && ImGui.IsMouseDoubleClicked(ImGuiMouseButton.Left));
+                    ImGui.SameLine();
+
+                    ImGui.TextWrapped(title);
+                    isClicked |= (ImGui.IsItemClicked() && ImGui.IsMouseDoubleClicked(ImGuiMouseButton.Left));
+                }
+                else
+                {
+                    ImGui.TextWrapped(title);
+                    isClicked |= (ImGui.IsItemClicked() && ImGui.IsMouseDoubleClicked(ImGuiMouseButton.Left));
+                }
+
+                if (isClicked)
                 {
                     this.OnSelectPath?.Invoke(pair.Key);
                 }
+
+                //var title = string.IsNullOrEmpty(pair.Value) ? pair.Key : pair.Value;
+
+                //// タイトル
+                //if (ImGui.Button(title, new Vector2(width, 20)))
+                //{
+                //    this.OnSelectPath?.Invoke(pair.Key);
+                //}
             }
         }
 
@@ -345,9 +418,22 @@ namespace Clip_it
                 return;
             }
 
+            //if (2 <= fusen.Images.Count)
+            {
+                //width = (width / 2) - 5;
+            }
+            //bool sameLine = true;
             foreach (var texInfo in fusen.Images.Values)
             {
-                ImGui.Image(texInfo.texId, new Vector2(width, texInfo.texture.Height * (width / texInfo.texture.Width)));
+                //var height = Math.Min(width, texInfo.texture.Height) * (width / texInfo.texture.Width);
+                var h = 150.0f;
+                var w = texInfo.texture.Width * (h / texInfo.texture.Height);
+                ImGui.Image(texInfo.texId, new Vector2(w, h));
+                //if (sameLine)
+                //{
+                //    ImGui.SameLine();
+                //}
+                //sameLine = !sameLine;
             }
         }
 
