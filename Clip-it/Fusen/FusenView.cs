@@ -49,6 +49,8 @@ namespace Clip_it
         public event Action OnChangeAndEditEnd;
         public event Action OnClose;
 
+        Vector4 bgColor = new Vector4(0.0f, 0.0f, 0.0f, 1.0f);
+
         /// <summary>
         /// 表示
         /// </summary>
@@ -60,12 +62,15 @@ namespace Clip_it
 
             var model = fusen.Model;
             var text = model.Text;
-            var windowsFlags = ImGuiWindowFlags.AlwaysAutoResize | ImGuiWindowFlags.NoTitleBar;
+            var windowsFlags = ImGuiWindowFlags.AlwaysAutoResize | ImGuiWindowFlags.NoCollapse | ImGuiWindowFlags.NoFocusOnAppearing | ImGuiWindowFlags.NoDecoration;
 
             if (!_bEnableWindow)
             {
                 return;
             }
+
+
+            ImGui.PushStyleColor(ImGuiCol.WindowBg, bgColor);
 
             // ウィンドウサイズの設定
             var w = INPUT_WIDTH + 30;
@@ -73,10 +78,34 @@ namespace Clip_it
 
             // 大量のスペースはタイトルバーにIDを表示しないため
             // 改行は ini ファイルが機能しなくなるため入れてはいけない
+            //if (ImGui.Begin($"{model.Id.ToString()}".PadLeft('_'), ref _bEnableWindow, windowsFlags))
             if (ImGui.Begin($"{model.Id.ToString()}".PadLeft('_'), ref _bEnableWindow, windowsFlags))
             {
+                if (ImGui.BeginPopupContextWindow())
+                {
+                    //if (ImGui.BeginMenu(""))
+                    {
+                        //ImGui.EndMenu();
+                    }
+                    if (ImGui.MenuItem("削除"))
+                    {
+                        _bEnableWindow = false;
+                    }
+                    if (ImGui.BeginMenu("色"))
+                    {
+                        if (ImGui.MenuItem("赤")) { bgColor = new Vector4(1.0f, 0.0f, 0.0f, 1.0f); }
+                        if (ImGui.MenuItem("緑")) { bgColor = new Vector4(0.0f, 1.0f, 0.0f, 1.0f); }
+                        if (ImGui.ColorPicker4("BgColor", ref bgColor))
+                        {
+                        }
+                        ImGui.EndMenu();
+                    }
+                    ImGui.EndPopup();
+                }
+
                 DispEditPopup(model);
                 DispText(model, w);
+
 
                 ImGui.Spacing();
                 DispDateButtons(fusen, w);
@@ -89,6 +118,8 @@ namespace Clip_it
                 DispPathButtons(fusen, w);
 
                 ImGui.Spacing();
+                //DispTags(fusen);
+
                 //DispImages(fusen, w);
             }
             else
@@ -109,6 +140,7 @@ namespace Clip_it
             _bActive = ImGui.IsWindowFocused();
 
             ImGui.End();
+            ImGui.PopStyleColor();
         }
 
         /// <summary>
@@ -211,7 +243,11 @@ namespace Clip_it
             {
                 //ImGui.InputText("", ref text, 1024, ImGuiInputTextFlags.Multiline| ImGuiInputTextFlags.);
                 //ImGui.InputText("", ref text, 1024, new Vector2(width, 300), ImGuiInputTextFlags.Multiline);
+                //ImGui.AlignTextToFramePadding();
+                //ImGui.Text(text);
                 ImGui.TextWrapped(text);
+                //ImGui.LabelText("", text);
+                //ImGui.PopTextWrapPos
             }
 
         }
@@ -343,6 +379,46 @@ namespace Clip_it
                 //    this.OnSelectPath?.Invoke(pair.Key);
                 //}
             }
+        }
+
+        void DispTags(Fusen fusen)
+        {
+            ImGui.SmallButton($"{ImGui.GetColumnWidth()}");
+            ImGui.SameLine();
+            ImGui.SmallButton($"{ImGui.GetColumnWidth()}");
+            ImGui.SameLine();
+            ImGui.SmallButton($"{ImGui.GetColumnWidth()}");
+            ImGui.SameLine();
+            ImGui.SmallButton($"{ImGui.GetColumnWidth()}");
+            ImGui.SameLine();
+            ImGui.SmallButton($"{ImGui.GetColumnWidth()}");
+            ImGui.SameLine();
+            ImGui.SmallButton($"{ImGui.GetColumnWidth()}");
+            ImGui.SameLine();
+            ImGui.SmallButton($"{ImGui.GetColumnWidth()}");
+            ImGui.SameLine();
+            ImGui.SmallButton($"{ImGui.GetColumnWidth()}");
+            ImGui.SameLine();
+            ImGui.SmallButton($"{ImGui.GetColumnWidth()}");
+            ImGui.SameLine();
+            ImGui.SmallButton($"{ImGui.GetColumnWidth()}");
+            ImGui.SameLine();
+            ImGui.SmallButton($"{ImGui.GetColumnWidth()}");
+            ImGui.SameLine();
+            ImGui.SmallButton($"{ImGui.GetColumnWidth()}");
+            ImGui.SameLine();
+            ImGui.SmallButton($"{ImGui.GetColumnWidth()}");
+            ImGui.SameLine();
+            ImGui.SmallButton($"{ImGui.GetColumnWidth()}");
+            ImGui.SameLine();
+            ImGui.SmallButton($"{ImGui.GetColumnWidth()}");
+            ImGui.SameLine();
+            ImGui.SmallButton($"{ImGui.GetColumnWidth()}");
+            ImGui.SameLine();
+            ImGui.SmallButton($"{ImGui.GetColumnWidth()}");
+            ImGui.SameLine();
+            
+
         }
 
         /// <summary>

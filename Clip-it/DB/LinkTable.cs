@@ -71,7 +71,7 @@ namespace Clip_it
                                 cmd.Parameters.Add("Link", System.Data.DbType.String);
                                 cmd.Parameters.Add("Title", System.Data.DbType.String);
                                 cmd.Parameters.Add("Og_Image_Url", System.Data.DbType.String);
-                                // データ追加
+                                // データBegin追
                                 cmd.Parameters["Link"].Value = model.Uri.AbsoluteUri;
                                 cmd.Parameters["Title"].Value = model.Title;
                                 cmd.Parameters["Og_Image_Url"].Value = model.OgImageUrl;

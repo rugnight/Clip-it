@@ -111,6 +111,7 @@ namespace Clip_it
             // ショートカットキーの処理
             UpdateShortcutKeys();
 
+
             // 付箋を描画
             if (_bAlighn)
             {
@@ -120,6 +121,7 @@ namespace Clip_it
             {
                 FusenUpdate();
             }
+            ImGui.EndTabItem();
 
 
 
@@ -133,6 +135,8 @@ namespace Clip_it
         {
             if (ImGui.BeginMainMenuBar())
             {
+                string hoge = "";
+
                 if (ImGui.MenuItem("▼"))
                 {
                     _appEventHandler?.OnPushHide();
@@ -164,6 +168,12 @@ namespace Clip_it
                 {
                     DeleteEmptyFusenAll();
                 }
+
+                //if (ImGui.BeginMenu("Tag"))
+                //{
+                //    ImGui.InputText("Tag", ref hoge, 512);
+                //    ImGui.EndMenu();
+                //}
 
                 if (ImGui.MenuItem("Quit"))
                 {
