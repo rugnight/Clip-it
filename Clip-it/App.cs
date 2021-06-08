@@ -46,6 +46,7 @@ namespace Clip_it
         bool _bAlighn = false;
         bool _bQuit= false;
 
+        // レイアウト番号
         int _layoutNo = 1;
 
         // データ保存先ディレクトリ
@@ -154,9 +155,32 @@ namespace Clip_it
 
             // メニューバーの処理
             UpdateMainMenuBar();
+
+            // コンテキストメニューの処理
             UpdateMainContext();
 
+            // タグのメニュー処理
+            //UpdateMainTagMenu();
+
             ImGui.End();
+        }
+
+        /// <summary>
+        /// タグの切り替えメニュー
+        /// </summary>
+        void UpdateMainTagMenu()
+        {
+            bool hoge = false;
+            ImGui.PushStyleColor(ImGuiCol.Button, new Vector4(0.5f, 0.5f, 0.5f, 1.0f));
+            ImGui.SmallButton("hoge");
+            ImGui.SameLine();
+            ImGui.SmallButton("hoge");
+            ImGui.SameLine();
+            ImGui.PopStyleColor();
+            ImGui.SmallButton("hoge");
+            ImGui.SameLine();
+            ImGui.SmallButton("hoge");
+            ImGui.SameLine();
         }
 
         /// <summary>
