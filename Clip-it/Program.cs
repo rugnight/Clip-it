@@ -60,7 +60,6 @@ namespace Clip_it
             _cl = _gd.ResourceFactory.CreateCommandList();
             _window.BorderVisible = false;
 
-
             // キー入力
             _window.KeyDown += (evt) =>
             {
@@ -115,7 +114,6 @@ namespace Clip_it
                 {
                     _window.Close();
                 }
-
 
                 _cl.Begin();
                 _cl.SetFramebuffer(_gd.MainSwapchain.Framebuffer);

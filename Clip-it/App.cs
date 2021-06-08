@@ -29,6 +29,7 @@ namespace Clip_it
     {
         // アプリ名
         public const string AppName = "Clip-it";
+        const string MAIN_WIN_NAME = "Clip-it";
 
         ClipItDB _db;
         FusenTable _fusenTable;
@@ -44,6 +45,8 @@ namespace Clip_it
 
         bool _bAlighn = false;
         bool _bQuit= false;
+
+        int _layoutNo = 1;
 
         // データ保存先ディレクトリ
         string DataDir { get => System.IO.Path.Combine(System.Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), AppName); }
@@ -63,7 +66,7 @@ namespace Clip_it
         {
             _gd = gd;
             _controller = controller;
-            _windowSize = new Vector2(windowSize.X, 1.0f);
+            _windowSize = new Vector2(windowSize.X, windowSize.Y);
             _appEventHandler = appEventHandler;
 
             // アプリケーションフォルダの作成
@@ -83,7 +86,7 @@ namespace Clip_it
                 fusens.Add(new Fusen(model, this));
             }
             // imgui.iniロード
-            LayoutLoad();
+            LayoutLoad(_layoutNo);
         }
 
         /// <summary>
@@ -94,23 +97,25 @@ namespace Clip_it
             // DB保存
             _fusenTable.Save(fusens.Select((fusen) => fusen.Model).ToList());
             // imgui.ini保存
-            LayoutSave();
+            LayoutSave(_layoutNo);
         }
 
         /// <summary>
         /// 更新
         /// </summary>
         /// <returns></returns>
+
+        float x = 0;
+        float y = 0;
         public bool Update()
         {
             _bAlighn = false;
 
-            // メニューバーの処理
-            UpdateMenuBar();
+            // メインウィンドウ
+            UpdateMainWindow();
 
-            // ショートカットキーの処理
-            UpdateShortcutKeys();
-
+            // 付箋を移動
+            //FusenMove(ImGui.GetMouseDragDelta() * 1.0f);
 
             // 付箋を描画
             if (_bAlighn)
@@ -123,48 +128,84 @@ namespace Clip_it
             }
             ImGui.EndTabItem();
 
-
+            ImGui.ResetMouseDragDelta();
 
             return !_bQuit;
         }
 
         /// <summary>
+        /// メインウィンドウ表示
+        /// </summary>
+        void UpdateMainWindow()
+        { 
+            ImGui.Begin(MAIN_WIN_NAME, 
+                ImGuiWindowFlags.NoMove 
+                | ImGuiWindowFlags.NoBackground 
+                | ImGuiWindowFlags.MenuBar
+                | ImGuiWindowFlags.NoCollapse
+                | ImGuiWindowFlags.NoTitleBar
+                | ImGuiWindowFlags.NoResize 
+                | ImGuiWindowFlags.NoBringToFrontOnFocus);
+            ImGui.SetWindowPos(new Vector2(0, 0));
+            ImGui.SetWindowSize(_windowSize);
+
+            // ショートカットキーの処理
+            UpdateMainShortcutKeys();
+
+            // メニューバーの処理
+            UpdateMainMenuBar();
+            UpdateMainContext();
+
+            ImGui.End();
+        }
+
+        /// <summary>
         /// メニューバーを処理
         /// </summary>
-        void UpdateMenuBar()
+        void UpdateMainMenuBar()
         {
-            if (ImGui.BeginMainMenuBar())
+            if (ImGui.BeginMenuBar())
             {
-                string hoge = "";
-
                 if (ImGui.MenuItem("▼"))
                 {
                     _appEventHandler?.OnPushHide();
                 }
 
-                if (ImGui.MenuItem("New", "CTRL+N"))
+                //if (ImGui.MenuItem("New", "CTRL+N"))
+                //{
+                //    CreateNewFusen();
+                //}
+
+                // レイアウト
+                for (int i = 1; i < 4 + 1; ++i)
                 {
-                    CreateNewFusen();
+                    if (ImGui.MenuItem($"{i}", $"CTRL+{i}"))
+                    {
+                        LayoutSave(_layoutNo);
+                        _layoutNo = i;
+                        LayoutLoad(_layoutNo);
+                    }
                 }
 
-                if (ImGui.BeginMenu("Layout"))
+
+                if (ImGui.BeginMenu("レイアウト"))
                 {
-                    if (ImGui.MenuItem("Alighn", "CTRL+A"))
+                    if (ImGui.MenuItem("整列", "CTRL+A"))
                     {
                         _bAlighn = true;
                     }
-                    if (ImGui.MenuItem("Save", "CTRL+S"))
-                    {
-                        LayoutSave();
-                    }
-                    if (ImGui.MenuItem("Load", "CTRL+L"))
-                    {
-                        LayoutLoad();
-                    }
+                    //if (ImGui.MenuItem("Save", "CTRL+S"))
+                    //{
+                    //    LayoutSave();
+                    //}
+                    //if (ImGui.MenuItem("Load", "CTRL+L"))
+                    //{
+                    //    LayoutLoad();
+                    //}
                     ImGui.EndMenu();
                 }
 
-                if (ImGui.MenuItem("Clean Empty"))
+                if (ImGui.MenuItem("空の付箋を削除"))
                 {
                     DeleteEmptyFusenAll();
                 }
@@ -175,25 +216,43 @@ namespace Clip_it
                 //    ImGui.EndMenu();
                 //}
 
-                if (ImGui.MenuItem("Quit"))
+                if (ImGui.MenuItem("終了"))
                 {
                     _bQuit = true; ;
                 }
-                ImGui.EndMainMenuBar();
+                ImGui.EndMenuBar();
             }
+        }
+
+        /// <summary>
+        /// コンテキストメニュー
+        /// </summary>
+        void UpdateMainContext()
+        {
+            if (!ImGui.BeginPopupContextWindow())
+            {
+                return;
+            }
+
+            if (ImGui.MenuItem("新規"))
+            {
+                CreateNewFusen();
+            }
+
+            ImGui.EndPopup();
         }
 
         /// <summary>
         /// ショートカットキーの処理
         /// </summary>
-        void UpdateShortcutKeys()
+        void UpdateMainShortcutKeys()
         {
             var io = ImGui.GetIO();
 
             // ESC
             if (ImGui.IsKeyPressed((int)Key.Escape, false))
             {
-                if (ImGui.IsAnyItemActive() || ImGui.IsWindowFocused(ImGuiFocusedFlags.AnyWindow))
+                if (ImGui.IsAnyItemActive() || !ImGui.IsWindowFocused())
                 {
                     // ウィンドウからフォーカスを外す
                     ImGui.SetWindowFocus(null);
@@ -210,18 +269,18 @@ namespace Clip_it
                 CreateNewFusen();
             }
 
-            if (io.KeyCtrl && ImGui.IsKeyPressed((int)Key.S, false))
-            {
-                LayoutSave();
-            }
+            //if (io.KeyCtrl && ImGui.IsKeyPressed((int)Key.S, false))
+            //{
+            //    LayoutSave();
+            //}
 
-            if (io.KeyCtrl && ImGui.IsKeyPressed((int)Key.L, false))
-            {
-                LayoutLoad();
-            }
+            //if (io.KeyCtrl && ImGui.IsKeyPressed((int)Key.L, false))
+            //{
+            //    LayoutLoad();
+            //}
 
             // 整列
-            if (io.KeyCtrl && ImGui.IsKeyPressed((int)Key.A, false) && !ImGui.IsWindowFocused(ImGuiFocusedFlags.AnyWindow))
+            if (io.KeyCtrl && ImGui.IsKeyPressed((int)Key.A, false) && !ImGui.IsPopupOpen(FusenView.EDIT_POPUP_NAME, ImGuiPopupFlags.AnyPopup))
             {
                 _bAlighn = true;
             }
@@ -247,17 +306,26 @@ namespace Clip_it
             }
 
             // CTRL+Vで付箋作成
-            if (io.KeyCtrl && ImGui.IsKeyPressed((int)Key.V, false) && !ImGui.IsWindowFocused(ImGuiFocusedFlags.AnyWindow))
+            if (io.KeyCtrl && ImGui.IsKeyPressed((int)Key.V, false) && ImGui.IsWindowFocused())
             {
                 var clipText = ImGui.GetClipboardText();
                 if (clipText != null)
                 {
-                    var model = new FusenModel();
-                    model.Text = clipText;
-                    fusens.Add(new Fusen(model, this));
+                    CreateNewFusen(clipText);
                 }
             }
 
+        }
+
+        /// <summary>
+        /// 付箋の移動
+        /// </summary>
+        void FusenMove(Vector2 move)
+        {
+            foreach (var fusen in fusens)
+            {
+                fusen.Move = move;
+            }
         }
 
 
@@ -324,9 +392,9 @@ namespace Clip_it
         /// <summary>
         /// 新しい付箋を作成する
         /// </summary>
-        void CreateNewFusen()
+        void CreateNewFusen(string text = "")
         {
-            var fusen = new Fusen(new FusenModel(), this);
+            var fusen = new Fusen(new FusenModel(text), this);
             fusen.SetFocusInput();
             fusens.Add(fusen);
         }
@@ -362,15 +430,15 @@ namespace Clip_it
         }
 
         // imgui.ini保存
-        void LayoutSave()
+        void LayoutSave(int layoutNo)
         {
-            ImGui.SaveIniSettingsToDisk(IniFilePath);
+            ImGui.SaveIniSettingsToDisk(System.IO.Path.Combine(DataDir, $"imgui{layoutNo}.ini"));
         }
 
         // imgui.iniロード
-        void LayoutLoad()
+        void LayoutLoad(int layoutNo)
         {
-            ImGui.LoadIniSettingsFromDisk(IniFilePath);
+            ImGui.LoadIniSettingsFromDisk(System.IO.Path.Combine(DataDir, $"imgui{layoutNo}.ini"));
         }
 
         /// <summary>
@@ -447,9 +515,7 @@ namespace Clip_it
         /// <param name="dropFile"></param>
         public void OnDropItem(string dropFile)
         {
-            var model = new FusenModel();
-            model.Text = dropFile;
-            fusens.Add(new Fusen(model, this));
+            CreateNewFusen(dropFile);
         }
 
         /// <summary>

@@ -102,10 +102,19 @@ namespace ImGuiNET
                 var fonts = ImGui.GetIO().Fonts;
                 //io.Fonts.AddFontDefault();
 
+                var configAlpha = new ImFontConfigPtr(ImGuiNative.ImFontConfig_ImFontConfig());
+                configAlpha.OversampleH = 2; //横方向のオーバーサンプリング、高画質になるらしい
+                configAlpha.OversampleV = 1;
+                configAlpha.RasterizerMultiply = 1.4f;//1より大きくすると太くなる。imGuiはフォント描画にアンチエイリアスがかかって薄くなるのでこれで対処
+                configAlpha.FontNo = 2;//ttc(ttfが複数集まったやつ)ファイルの場合、この番号でフォントを指定できる。この場合MS UIGothicを指定
+                configAlpha.PixelSnapH = true;//線が濃くなれば良いが効果不明
+                //configAlpha.MergeMode = true;
+                io.Fonts.AddFontFromFileTTF(@"c:\windows\fonts\meiryo.ttc", 24.0f, configAlpha, io.Fonts.GetGlyphRangesDefault());
+
                 var config = new ImFontConfigPtr(ImGuiNative.ImFontConfig_ImFontConfig());
                 config.OversampleH = 2; //横方向のオーバーサンプリング、高画質になるらしい
                 config.OversampleV = 1;
-                config.RasterizerMultiply = 1.2f;//1より大きくすると太くなる。imGuiはフォント描画にアンチエイリアスがかかって薄くなるのでこれで対処
+                config.RasterizerMultiply = 1.4f;//1より大きくすると太くなる。imGuiはフォント描画にアンチエイリアスがかかって薄くなるのでこれで対処
                 config.FontNo = 2;//ttc(ttfが複数集まったやつ)ファイルの場合、この番号でフォントを指定できる。この場合MS UIGothicを指定
                 config.PixelSnapH = true;//線が濃くなれば良いが効果不明
                 config.MergeMode = true;
@@ -113,9 +122,8 @@ namespace ImGuiNET
                 IntPtr japaneseGlyph = Marshal.AllocCoTaskMem(Marshal.SizeOf(typeof(ushort)) * glyphRangesJapanese.Length);
                 //Copy()の引数にushort[]が無いので下記のキャストで無理やり渡す
                 Marshal.Copy((short[])(object)glyphRangesJapanese, 0, japaneseGlyph, glyphRangesJapanese.Length);
-                io.Fonts.AddFontFromFileTTF(@"c:\windows\fonts\meiryo.ttc", 20.0f, ImGuiNative.ImFontConfig_ImFontConfig(), io.Fonts.GetGlyphRangesDefault());
                 //io.Fonts.AddFontFromFileTTF(@"c:\windows\fonts\meiryo.ttc", 12.0f, config, io.Fonts.GetGlyphRangesJapanese());
-                io.Fonts.AddFontFromFileTTF(@"c:\windows\fonts\meiryo.ttc", 20.0f, config, japaneseGlyph);
+                io.Fonts.AddFontFromFileTTF(@"c:\windows\fonts\meiryo.ttc", 24.0f, config, japaneseGlyph);
                 //imgui内部でメモリを直接使用しているらしく、Freeすると落ちる
                 //Marshal.FreeCoTaskMem(ptr);
                 config.Destroy();

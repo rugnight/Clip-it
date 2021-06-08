@@ -47,9 +47,14 @@ namespace Clip_it
 
         public FusenModel Model => _model;
         public Vector2 LastSize => _view.LastSize;
+        public Vector2 Move 
+        {
+            get => _view.Move;
+            set => _view.Move = value;
+        }
         public int LastSizeUnit => _view.LastSizeUnit;
         public Dictionary<string, LinkModel> Urls { get; private set; } = new Dictionary<string, LinkModel>();
-        public Dictionary<string, string> Paths { get; private set; } = new Dictionary<string, string>();
+        public Dictionary<Uri, string> Paths { get; private set; } = new Dictionary<Uri, string>();
         public Dictionary<string, bool> Dates { get; private set; } = new Dictionary<string, bool>();
         public Dictionary<DateTime, bool> DateTimes { get; private set; } = new Dictionary<DateTime, bool>();
         public Dictionary<string, TextureInfo> Images { get; private set; } = new Dictionary<string, TextureInfo>();
@@ -183,11 +188,11 @@ namespace Clip_it
                 {
                     continue;
                 }
-                if (this.Paths.ContainsKey(path.LocalPath))
+                if (this.Paths.ContainsKey(path))
                 {
                     continue;
                 }
-                this.Paths[path.AbsoluteUri] = item;
+                this.Paths[path] = item;
             }
 
             // URL

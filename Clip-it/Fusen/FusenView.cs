@@ -10,6 +10,7 @@ namespace Clip_it
     /// </summary>
     class FusenView
     {
+        public const string EDIT_POPUP_NAME = "編集";
         // 本文入力の幅
         const float INPUT_WIDTH = 600.0f;
         const float IMAGE_H = 150.0f;
@@ -30,6 +31,9 @@ namespace Clip_it
         // ウィンドウ作成直後の場合、そのフレームでフォーカス命令が機能しないので
         // 2フレーム後にフォーカスするように実装している
         int _setFocusFrame = 0;
+
+        // このフレームの移動
+        public Vector2 Move { get; set; } = new Vector2();
 
         // 最後に表示したときのウィンドウサイズ
         Vector2 lastSize = new Vector2();
@@ -62,14 +66,17 @@ namespace Clip_it
 
             var model = fusen.Model;
             var text = model.Text;
-            var windowsFlags = ImGuiWindowFlags.AlwaysAutoResize | ImGuiWindowFlags.NoCollapse | ImGuiWindowFlags.NoFocusOnAppearing | ImGuiWindowFlags.NoDecoration;
+            var windowsFlags = ImGuiWindowFlags.AlwaysAutoResize 
+                | ImGuiWindowFlags.NoCollapse 
+                | ImGuiWindowFlags.NoFocusOnAppearing 
+                | ImGuiWindowFlags.NoDecoration;
 
             if (!_bEnableWindow)
             {
                 return;
             }
 
-
+            // 背景色
             ImGui.PushStyleColor(ImGuiCol.WindowBg, bgColor);
 
             // ウィンドウサイズの設定
@@ -81,27 +88,13 @@ namespace Clip_it
             //if (ImGui.Begin($"{model.Id.ToString()}".PadLeft('_'), ref _bEnableWindow, windowsFlags))
             if (ImGui.Begin($"{model.Id.ToString()}".PadLeft('_'), ref _bEnableWindow, windowsFlags))
             {
-                if (ImGui.BeginPopupContextWindow())
-                {
-                    //if (ImGui.BeginMenu(""))
-                    {
-                        //ImGui.EndMenu();
-                    }
-                    if (ImGui.MenuItem("削除"))
-                    {
-                        _bEnableWindow = false;
-                    }
-                    if (ImGui.BeginMenu("色"))
-                    {
-                        if (ImGui.MenuItem("赤")) { bgColor = new Vector4(1.0f, 0.0f, 0.0f, 1.0f); }
-                        if (ImGui.MenuItem("緑")) { bgColor = new Vector4(0.0f, 1.0f, 0.0f, 1.0f); }
-                        if (ImGui.ColorPicker4("BgColor", ref bgColor))
-                        {
-                        }
-                        ImGui.EndMenu();
-                    }
-                    ImGui.EndPopup();
-                }
+                // ウィンドウの移動
+                ImGui.SetWindowPos(ImGui.GetWindowPos() + Move);
+                // 移動量を0に
+                Move = Vector2.Zero;
+
+                DispContext();
+
 
                 DispEditPopup(model);
                 DispText(model, w);
@@ -161,6 +154,31 @@ namespace Clip_it
         }
 
         /// <summary>
+        /// コンテキストメニューを表示
+        /// </summary>
+        void DispContext()
+        {
+            if (!ImGui.BeginPopupContextWindow())
+            {
+                return;
+            }
+            if (ImGui.MenuItem("削除"))
+            {
+                _bEnableWindow = false;
+            }
+            if (ImGui.BeginMenu("色"))
+            {
+                if (ImGui.MenuItem("赤")) { bgColor = new Vector4(1.0f, 0.0f, 0.0f, 1.0f); }
+                if (ImGui.MenuItem("緑")) { bgColor = new Vector4(0.0f, 1.0f, 0.0f, 1.0f); }
+                if (ImGui.ColorPicker4("BgColor", ref bgColor))
+                {
+                }
+                ImGui.EndMenu();
+            }
+            ImGui.EndPopup();
+        }
+
+        /// <summary>
         /// 編集ダイアログの表示
         /// </summary>
         /// <param name="model"></param>
@@ -169,20 +187,19 @@ namespace Clip_it
         {
             var w = 1000;
             var h = 500;
-            var popupName = "編集";
 
             var text = model.Text;
             // 本文をダブルクリックしたら編集ダイアログを出す
             //if (!ImGui.IsPopupOpen(popupName) && ImGui.IsItemClicked() && ImGui.IsMouseDoubleClicked(ImGuiMouseButton.Left))
-            if (!ImGui.IsPopupOpen(popupName) && ImGui.IsWindowHovered() && ImGui.IsMouseDoubleClicked(ImGuiMouseButton.Left))
+            if (!ImGui.IsPopupOpen(EDIT_POPUP_NAME) && ImGui.IsWindowHovered() && ImGui.IsMouseDoubleClicked(ImGuiMouseButton.Left))
             {
-                ImGui.OpenPopup(popupName);
+                ImGui.OpenPopup(EDIT_POPUP_NAME);
                 // ダイアログの表示位置を設定
                 ImGui.SetNextWindowPos(new Vector2(20));
                 // 開いたときにメモ欄にフォーカスを移す
                 this.SetFocusInput();
             }
-            if (ImGui.BeginPopupModal(popupName))
+            if (ImGui.BeginPopupModal(EDIT_POPUP_NAME))
             {
                 // フォーカス設定フラグが立っていたら、テキストボックスにフォーカスする
                 if (0 < _setFocusFrame)
@@ -236,20 +253,7 @@ namespace Clip_it
             // ヘッダのタイトルは空文字だとテキストボックス編集ができなくなるので
             // 内容が空のときは空白を入れておく
             var title = (0 < text.Length) ? text.Substring(0, Math.Min(text.Length, MEMO_HEADER_TEXT_COUNT)) : " ";
-
-            // 本文表示
-            //model.OpenedText = ImGui.CollapsingHeader(title, flags);
-            //if (model.OpenedText)
-            {
-                //ImGui.InputText("", ref text, 1024, ImGuiInputTextFlags.Multiline| ImGuiInputTextFlags.);
-                //ImGui.InputText("", ref text, 1024, new Vector2(width, 300), ImGuiInputTextFlags.Multiline);
-                //ImGui.AlignTextToFramePadding();
-                //ImGui.Text(text);
-                ImGui.TextWrapped(text);
-                //ImGui.LabelText("", text);
-                //ImGui.PopTextWrapPos
-            }
-
+            ImGui.TextWrapped(text);
         }
 
         /// <summary>
@@ -283,8 +287,10 @@ namespace Clip_it
                     var h = IMAGE_H;
                     var w = texInfo.texture.Width * (h / texInfo.texture.Height);
 
-                    ImGui.Image(texInfo.texId, new Vector2(w, h));
-                    isClicked |= (ImGui.IsItemClicked() && ImGui.IsMouseDoubleClicked(ImGuiMouseButton.Left));
+                    if (ImGui.ImageButton(texInfo.texId, new Vector2(w, h)))
+                    {
+                        isClicked |= true;
+                    }
                     ImGui.SameLine();
 
                     ImGui.TextWrapped(title);
@@ -292,6 +298,15 @@ namespace Clip_it
                 }
                 else
                 {
+                    var h = IMAGE_H / 3;
+                    var w = IMAGE_H / 3;
+
+                    if (ImGui.Button("開く", new Vector2(w, h)))
+                    {
+                        isClicked |= true;
+                    }
+
+                    ImGui.SameLine();
                     ImGui.TextWrapped(title);
                     isClicked |= (ImGui.IsItemClicked() && ImGui.IsMouseDoubleClicked(ImGuiMouseButton.Left));
                 }
@@ -300,24 +315,6 @@ namespace Clip_it
                 {
                     this.OnSelectURL?.Invoke(pair.Value.Uri);
                 }
-
-
-                // 画像
-                //TextureInfo texInfo;
-                //if (fusen.Images.TryGetValue(pair.Value.OgImageUrl, out texInfo))
-                //{
-                //    var h = 150.0f;
-                //    var w = texInfo.texture.Width * (h / texInfo.texture.Height);
-                //    ImGui.Image(texInfo.texId, new Vector2(w, h));
-
-                //    width = width - w;
-                //}
-
-                // タイトル
-                //if (ImGui.Button(title, new Vector2(width, 150)))
-                {
-                    //this.OnSelectURL?.Invoke(pair.Value.Uri);
-                }
             }
         }
 
@@ -325,7 +322,6 @@ namespace Clip_it
         /// パスボタンを表示
         /// </summary>
         /// <param name="fusen"></param>
-        bool FilesOpend = false;
         void DispPathButtons(Fusen fusen, float windowWidth)
         {
             if (fusen.Paths.Count == 0)
@@ -333,28 +329,24 @@ namespace Clip_it
                 return;
             }
 
-            //FilesOpend = ImGui.CollapsingHeader("ファイル", ImGuiTreeNodeFlags.DefaultOpen | ImGuiTreeNodeFlags.None);
-            //if (!FilesOpend)
-            //{
-            //    return;
-            //}
-
             foreach (var pair in fusen.Paths)
             {
                 var width = windowWidth;
                 //var title = string.IsNullOrEmpty(pair.Value.Title) ? pair.Value.Uri.AbsoluteUri : pair.Value.Title;
-                var title = string.IsNullOrEmpty(pair.Value) ? pair.Key : pair.Value;
+                var title = string.IsNullOrEmpty(pair.Value) ? pair.Key.LocalPath : pair.Value;
                 var isClicked = false;
 
                 TextureInfo texInfo;
-                if (fusen.Images.TryGetValue(pair.Key, out texInfo))
+                if (fusen.Images.TryGetValue(pair.Key.AbsoluteUri, out texInfo))
                 {
 
                     var h = IMAGE_H;
                     var w = texInfo.texture.Width * (h / texInfo.texture.Height);
 
-                    ImGui.Image(texInfo.texId, new Vector2(w, h));
-                    isClicked |= (ImGui.IsItemClicked() && ImGui.IsMouseDoubleClicked(ImGuiMouseButton.Left));
+                    if (ImGui.ImageButton(texInfo.texId, new Vector2(w, h)))
+                    {
+                        isClicked |= true;
+                    }
                     ImGui.SameLine();
 
                     ImGui.TextWrapped(title);
@@ -362,22 +354,33 @@ namespace Clip_it
                 }
                 else
                 {
+                    var h = IMAGE_H / 3;
+                    var w = IMAGE_H / 3;
+
+                    if (System.IO.File.Exists(pair.Key.LocalPath) || System.IO.Directory.Exists(pair.Key.LocalPath))
+                    {
+                        if (ImGui.Button("開く", new Vector2(w, h)))
+                        {
+                            isClicked |= true;
+                        }
+                    }
+                    else
+                    {
+                        if (ImGui.InvisibleButton("開く", new Vector2(w, h)))
+                        {
+                            //isClicked |= true;
+                        }
+                    }
+                    ImGui.SameLine();
+
                     ImGui.TextWrapped(title);
                     isClicked |= (ImGui.IsItemClicked() && ImGui.IsMouseDoubleClicked(ImGuiMouseButton.Left));
                 }
 
                 if (isClicked)
                 {
-                    this.OnSelectPath?.Invoke(pair.Key);
+                    this.OnSelectPath?.Invoke(pair.Key.LocalPath);
                 }
-
-                //var title = string.IsNullOrEmpty(pair.Value) ? pair.Key : pair.Value;
-
-                //// タイトル
-                //if (ImGui.Button(title, new Vector2(width, 20)))
-                //{
-                //    this.OnSelectPath?.Invoke(pair.Key);
-                //}
             }
         }
 
