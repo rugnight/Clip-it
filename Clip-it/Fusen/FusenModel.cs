@@ -40,6 +40,9 @@ namespace Clip_it
         // テキスト折りたたみ状態
         public bool OpenedText = true;
 
+        // タグ
+        public List<string> Tags = new List<string>();
+
         // ポジション
         public float X = 0.0f;
         public float Y = 0.0f;

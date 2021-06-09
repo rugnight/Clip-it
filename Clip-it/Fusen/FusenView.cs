@@ -12,8 +12,9 @@ namespace Clip_it
     {
         public const string EDIT_POPUP_NAME = "編集";
         // 本文入力の幅
-        const float INPUT_WIDTH = 600.0f;
-        const float IMAGE_H = 150.0f;
+        const float INPUT_WIDTH = 300.0f;
+        const float IMAGE_H = 100.0f;
+        const float NO_IMAGE_H = 50.0f;
 
         // メモのヘッダー部分に表示する文字数
         const int MEMO_HEADER_TEXT_COUNT = 30;
@@ -27,6 +28,9 @@ namespace Clip_it
         // アクティブなウィンドウ化？
         bool _bActive = false;
 
+        // 編集ポップアップ
+        bool _bOpenPopup = false;
+
         // 入力状態にフォーカスする
         // ウィンドウ作成直後の場合、そのフレームでフォーカス命令が機能しないので
         // 2フレーム後にフォーカスするように実装している
@@ -36,14 +40,16 @@ namespace Clip_it
         public Vector2 Move { get; set; } = new Vector2();
 
         // 最後に表示したときのウィンドウサイズ
-        Vector2 lastSize = new Vector2();
-        public Vector2 LastSize => lastSize;
+        Vector2 _lastSize = new Vector2();
+        public Vector2 LastSize => _lastSize;
 
 
         // 最後に表示したときの何個分の大きさかの値
-        int lastSizeUnit = 1;
-        public int LastSizeUnit => lastSizeUnit;
+        int _lastSizeUnit = 1;
+        public int LastSizeUnit => _lastSizeUnit;
         
+        Vector2 _parentWindowSize = new Vector2();
+        Vector4 _bgColor = new Vector4(0.0f, 0.0f, 0.0f, 1.0f);
 
         // 各種UIイベント通知
         public event Action<string> OnChangeText;
@@ -51,9 +57,8 @@ namespace Clip_it
         public event Action<string> OnSelectPath;
         public event Action<DateTime, bool> OnToggleDateTime;
         public event Action OnChangeAndEditEnd;
+        public event Action<string> OnAddTag;
         public event Action OnClose;
-
-        Vector4 bgColor = new Vector4(0.0f, 0.0f, 0.0f, 1.0f);
 
         /// <summary>
         /// 表示
@@ -63,6 +68,7 @@ namespace Clip_it
         public void Disp(Fusen fusen)
         {
             _bActive = false;
+            _parentWindowSize = ImGui.GetWindowSize();
 
             var model = fusen.Model;
             var text = model.Text;
@@ -77,7 +83,7 @@ namespace Clip_it
             }
 
             // 背景色
-            ImGui.PushStyleColor(ImGuiCol.WindowBg, bgColor);
+            ImGui.PushStyleColor(ImGuiCol.WindowBg, _bgColor);
 
             // ウィンドウサイズの設定
             var w = INPUT_WIDTH + 30;
@@ -90,15 +96,14 @@ namespace Clip_it
             {
                 // ウィンドウの移動
                 ImGui.SetWindowPos(ImGui.GetWindowPos() + Move);
+
                 // 移動量を0に
                 Move = Vector2.Zero;
 
-                DispContext();
-
+                DispContext(model);
 
                 DispEditPopup(model);
                 DispText(model, w);
-
 
                 ImGui.Spacing();
                 DispDateButtons(fusen, w);
@@ -111,9 +116,7 @@ namespace Clip_it
                 DispPathButtons(fusen, w);
 
                 ImGui.Spacing();
-                //DispTags(fusen);
-
-                //DispImages(fusen, w);
+                DispTags(fusen);
             }
             else
             {
@@ -127,9 +130,9 @@ namespace Clip_it
             }
 
             // 最後に描画したウィンドウサイズを保存
-            lastSize = ImGui.GetWindowSize();
+            _lastSize = ImGui.GetWindowSize();
             // 最後に描画したウィンドウがなんブロックだったかを保存
-            lastSizeUnit = (int)lastSize.X / (int)INPUT_WIDTH;
+            _lastSizeUnit = (int)_lastSize.X / (int)INPUT_WIDTH;
             _bActive = ImGui.IsWindowFocused();
 
             ImGui.End();
@@ -156,24 +159,33 @@ namespace Clip_it
         /// <summary>
         /// コンテキストメニューを表示
         /// </summary>
-        void DispContext()
+        void DispContext(FusenModel model)
         {
             if (!ImGui.BeginPopupContextWindow())
             {
                 return;
             }
-            if (ImGui.MenuItem("削除"))
+            if (ImGui.BeginMenu("タグ"))
             {
-                _bEnableWindow = false;
+                string text = "";
+                if (ImGui.InputText("追加", ref text, 64, ImGuiInputTextFlags.EnterReturnsTrue))
+                {
+                    OnAddTag?.Invoke(text);
+                }
+                ImGui.EndMenu();
             }
             if (ImGui.BeginMenu("色"))
             {
-                if (ImGui.MenuItem("赤")) { bgColor = new Vector4(1.0f, 0.0f, 0.0f, 1.0f); }
-                if (ImGui.MenuItem("緑")) { bgColor = new Vector4(0.0f, 1.0f, 0.0f, 1.0f); }
-                if (ImGui.ColorPicker4("BgColor", ref bgColor))
+                if (ImGui.MenuItem("赤")) { _bgColor = new Vector4(1.0f, 0.0f, 0.0f, 1.0f); }
+                if (ImGui.MenuItem("緑")) { _bgColor = new Vector4(0.0f, 1.0f, 0.0f, 1.0f); }
+                if (ImGui.ColorPicker4("BgColor", ref _bgColor))
                 {
                 }
                 ImGui.EndMenu();
+            }
+            if (ImGui.MenuItem("削除"))
+            {
+                _bEnableWindow = false;
             }
             ImGui.EndPopup();
         }
@@ -185,21 +197,30 @@ namespace Clip_it
         /// <param name="width"></param>
         void DispEditPopup(FusenModel model)
         {
-            var w = 1000;
-            var h = 500;
+            var w = _parentWindowSize.X;// * 0.8f;
+            var h = _parentWindowSize.Y;// * 0.8f;
 
             var text = model.Text;
             // 本文をダブルクリックしたら編集ダイアログを出す
             //if (!ImGui.IsPopupOpen(popupName) && ImGui.IsItemClicked() && ImGui.IsMouseDoubleClicked(ImGuiMouseButton.Left))
-            if (!ImGui.IsPopupOpen(EDIT_POPUP_NAME) && ImGui.IsWindowHovered() && ImGui.IsMouseDoubleClicked(ImGuiMouseButton.Left))
+            if (!ImGui.IsPopupOpen(EDIT_POPUP_NAME) 
+                && ImGui.IsWindowHovered() 
+                && ImGui.IsMouseDoubleClicked(ImGuiMouseButton.Left))
             {
                 ImGui.OpenPopup(EDIT_POPUP_NAME);
+
                 // ダイアログの表示位置を設定
-                ImGui.SetNextWindowPos(new Vector2(20));
+                //ImGui.SetNextWindowPos(new Vector2(20));
+
                 // 開いたときにメモ欄にフォーカスを移す
                 this.SetFocusInput();
+
+                _bOpenPopup = true;
             }
-            if (ImGui.BeginPopupModal(EDIT_POPUP_NAME))
+            if (ImGui.BeginPopupModal(
+                EDIT_POPUP_NAME,
+                ref _bOpenPopup, 
+                ImGuiWindowFlags.AlwaysAutoResize | ImGuiWindowFlags.NoResize | ImGuiWindowFlags.NoCollapse))
             {
                 // フォーカス設定フラグが立っていたら、テキストボックスにフォーカスする
                 if (0 < _setFocusFrame)
@@ -215,7 +236,7 @@ namespace Clip_it
                     "",
                     ref text,
                     1024,
-                    new System.Numerics.Vector2(w, h),
+                    _parentWindowSize,
                     ImGuiInputTextFlags.None
                     ))
                 {
@@ -226,11 +247,6 @@ namespace Clip_it
                 if (ImGui.IsItemDeactivatedAfterEdit())
                 {
                     OnChangeAndEditEnd?.Invoke();
-                }
-
-                if (ImGui.Button("閉じる"))
-                {
-                    ImGui.CloseCurrentPopup();
                 }
                 ImGui.EndPopup();
             }
@@ -267,12 +283,6 @@ namespace Clip_it
                 return;
             }
 
-            //bool bOpen = ImGui.CollapsingHeader("URL", ImGuiTreeNodeFlags.DefaultOpen | ImGuiTreeNodeFlags.None);
-            //if (!bOpen)
-            //{
-            //    return;
-            //}
-
             // URLボタン
             foreach (var pair in fusen.Urls)
             {
@@ -294,12 +304,11 @@ namespace Clip_it
                     ImGui.SameLine();
 
                     ImGui.TextWrapped(title);
-                    isClicked |= (ImGui.IsItemClicked() && ImGui.IsMouseDoubleClicked(ImGuiMouseButton.Left));
                 }
                 else
                 {
-                    var h = IMAGE_H / 3;
-                    var w = IMAGE_H / 3;
+                    var h = NO_IMAGE_H;
+                    var w = NO_IMAGE_H;
 
                     if (ImGui.Button("開く", new Vector2(w, h)))
                     {
@@ -308,7 +317,6 @@ namespace Clip_it
 
                     ImGui.SameLine();
                     ImGui.TextWrapped(title);
-                    isClicked |= (ImGui.IsItemClicked() && ImGui.IsMouseDoubleClicked(ImGuiMouseButton.Left));
                 }
 
                 if (isClicked)
@@ -354,8 +362,8 @@ namespace Clip_it
                 }
                 else
                 {
-                    var h = IMAGE_H / 3;
-                    var w = IMAGE_H / 3;
+                    var h = NO_IMAGE_H;
+                    var w = NO_IMAGE_H;
 
                     if (System.IO.File.Exists(pair.Key.LocalPath) || System.IO.Directory.Exists(pair.Key.LocalPath))
                     {
@@ -386,42 +394,14 @@ namespace Clip_it
 
         void DispTags(Fusen fusen)
         {
-            ImGui.SmallButton($"{ImGui.GetColumnWidth()}");
-            ImGui.SameLine();
-            ImGui.SmallButton($"{ImGui.GetColumnWidth()}");
-            ImGui.SameLine();
-            ImGui.SmallButton($"{ImGui.GetColumnWidth()}");
-            ImGui.SameLine();
-            ImGui.SmallButton($"{ImGui.GetColumnWidth()}");
-            ImGui.SameLine();
-            ImGui.SmallButton($"{ImGui.GetColumnWidth()}");
-            ImGui.SameLine();
-            ImGui.SmallButton($"{ImGui.GetColumnWidth()}");
-            ImGui.SameLine();
-            ImGui.SmallButton($"{ImGui.GetColumnWidth()}");
-            ImGui.SameLine();
-            ImGui.SmallButton($"{ImGui.GetColumnWidth()}");
-            ImGui.SameLine();
-            ImGui.SmallButton($"{ImGui.GetColumnWidth()}");
-            ImGui.SameLine();
-            ImGui.SmallButton($"{ImGui.GetColumnWidth()}");
-            ImGui.SameLine();
-            ImGui.SmallButton($"{ImGui.GetColumnWidth()}");
-            ImGui.SameLine();
-            ImGui.SmallButton($"{ImGui.GetColumnWidth()}");
-            ImGui.SameLine();
-            ImGui.SmallButton($"{ImGui.GetColumnWidth()}");
-            ImGui.SameLine();
-            ImGui.SmallButton($"{ImGui.GetColumnWidth()}");
-            ImGui.SameLine();
-            ImGui.SmallButton($"{ImGui.GetColumnWidth()}");
-            ImGui.SameLine();
-            ImGui.SmallButton($"{ImGui.GetColumnWidth()}");
-            ImGui.SameLine();
-            ImGui.SmallButton($"{ImGui.GetColumnWidth()}");
-            ImGui.SameLine();
-            
-
+            for (int i = 0; i < fusen.Model.Tags.Count; ++i)
+            {
+                ImGui.SmallButton($"{fusen.Model.Tags[i]}");
+                if (i < fusen.Model.Tags.Count - 1)
+                {
+                    ImGui.SameLine();
+                }
+            }
         }
 
         /// <summary>
@@ -477,42 +457,6 @@ namespace Clip_it
                 var bOn = !fusen.DateTimes[key];
                 fusen.DateTimes[key] = bOn;
                 OnToggleDateTime?.Invoke(key, bOn);
-            }
-        }
-
-        /// <summary>
-        /// 画像の表示
-        /// </summary>
-        /// <param name="fusen"></param>
-        void DispImages(Fusen fusen, float width)
-        {
-            if (fusen.Images.Count == 0)
-            {
-                return;
-            }
-
-            bool bOpen = ImGui.CollapsingHeader("画像", ImGuiTreeNodeFlags.DefaultOpen | ImGuiTreeNodeFlags.None);
-            if (!bOpen)
-            {
-                return;
-            }
-
-            //if (2 <= fusen.Images.Count)
-            {
-                //width = (width / 2) - 5;
-            }
-            //bool sameLine = true;
-            foreach (var texInfo in fusen.Images.Values)
-            {
-                //var height = Math.Min(width, texInfo.texture.Height) * (width / texInfo.texture.Width);
-                var h = 150.0f;
-                var w = texInfo.texture.Width * (h / texInfo.texture.Height);
-                ImGui.Image(texInfo.texId, new Vector2(w, h));
-                //if (sameLine)
-                //{
-                //    ImGui.SameLine();
-                //}
-                //sameLine = !sameLine;
             }
         }
 

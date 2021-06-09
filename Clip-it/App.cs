@@ -49,14 +49,14 @@ namespace Clip_it
         // レイアウト番号
         int _layoutNo = 1;
 
+        // 全てのタグ
+        Dictionary<string, bool> AllTags = new Dictionary<string, bool>();
+
         // データ保存先ディレクトリ
         string DataDir { get => System.IO.Path.Combine(System.Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), AppName); }
 
         // DB情報保存ファイル
         string DbFilePath { get => System.IO.Path.Combine(DataDir, "fusen.db"); }
-
-        // IMGUIの保存情報ファイル
-        string IniFilePath { get => System.IO.Path.Combine(DataDir, "imgui.ini"); }
 
         /// <summary>
         /// 初期化
@@ -160,7 +160,7 @@ namespace Clip_it
             UpdateMainContext();
 
             // タグのメニュー処理
-            //UpdateMainTagMenu();
+            UpdateMainTagMenu();
 
             ImGui.End();
         }
@@ -170,17 +170,22 @@ namespace Clip_it
         /// </summary>
         void UpdateMainTagMenu()
         {
-            bool hoge = false;
-            ImGui.PushStyleColor(ImGuiCol.Button, new Vector4(0.5f, 0.5f, 0.5f, 1.0f));
-            ImGui.SmallButton("hoge");
-            ImGui.SameLine();
-            ImGui.SmallButton("hoge");
-            ImGui.SameLine();
-            ImGui.PopStyleColor();
-            ImGui.SmallButton("hoge");
-            ImGui.SameLine();
-            ImGui.SmallButton("hoge");
-            ImGui.SameLine();
+            int count = 0;
+            foreach(var key in AllTags.Keys)
+            {
+                bool isOn = AllTags[key];
+                if (ImGui.Checkbox(key, ref isOn))
+                {
+                    AllTags[key] = isOn;
+                    break;
+                }
+
+                if (count < AllTags.Count - 1)
+                {
+                    ImGui.SameLine();
+                }
+                count++;
+            }
         }
 
         /// <summary>
@@ -360,7 +365,14 @@ namespace Clip_it
         {
             foreach (var fusen in fusens)
             {
-                fusen.Update();
+                if (AllTags.All((pair) => { return !pair.Value; }))
+                {
+                    fusen.Update();
+                }
+                else if (AllTags.Any((pair) => { return pair.Value && fusen.Model.Tags.Contains(pair.Key); }))
+                {
+                    fusen.Update();
+                }
             }
         }
 
@@ -705,6 +717,18 @@ namespace Clip_it
             {
                 new ToastContentBuilder().AddText("Clip-It").AddText(fusen.Model.Text).Schedule(new DateTimeOffset(dateTime));
             }
+        }
+
+        public void OnFusenAddTag(Fusen fusen, string tag)
+        {
+            if (!AllTags.ContainsKey(tag))
+            {
+                AllTags[tag] = true;
+            }
+        }
+
+        public void OnFusenDelTag(Fusen fusen, string tag)
+        {
         }
     }
 }

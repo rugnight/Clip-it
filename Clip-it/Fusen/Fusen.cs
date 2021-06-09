@@ -21,6 +21,8 @@ namespace Clip_it
         public void OnFusenRequestOpenPath(string path);
         public void OnFusenRequestCreateTexture(Uri uri, Action<Texture, IntPtr> onComplete);
         public void OnFusenRequestNotifyToggle(Fusen fusen, DateTime dateTime, bool bOn);
+        public void OnFusenAddTag(Fusen fusen, string tag);
+        public void OnFusenDelTag(Fusen fusen, string tag);
     }
 
     // テクスチャの情報
@@ -96,6 +98,11 @@ namespace Clip_it
                 // 内容変更があってテキスト入力からフォーカスが外れたらメタ情報更新
                 //this.UpdateMetaData();
                 _eventHandler?.OnFusenChangeAndEditEnd(this);
+            };
+            _view.OnAddTag += (tag) =>
+            {
+                this._model.Tags.Add(tag); 
+                _eventHandler?.OnFusenAddTag(this, tag);
             };
             _view.OnToggleDateTime += (dateTime, bOn) =>
             {
