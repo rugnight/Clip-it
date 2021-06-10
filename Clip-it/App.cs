@@ -267,6 +267,10 @@ namespace Clip_it
             {
                 CreateNewFusen();
             }
+            if (ImGui.MenuItem("貼り付け"))
+            {
+                CreateNewFusen(ImGui.GetClipboardText());
+            }
 
             ImGui.EndPopup();
         }
@@ -721,14 +725,24 @@ namespace Clip_it
 
         public void OnFusenAddTag(Fusen fusen, string tag)
         {
+            // フィルタが掛かっていたら true 状態で初期設定する
+            bool defaultValue = false;
+            defaultValue = AllTags.Any((pair) => { return pair.Value; });
+
             if (!AllTags.ContainsKey(tag))
             {
-                AllTags[tag] = true;
+                AllTags[tag] = defaultValue;
             }
         }
 
         public void OnFusenDelTag(Fusen fusen, string tag)
         {
+            // 使用中のタグであれば辞書からは消さない
+            if (fusens.Any((fusen) => fusen.Model.Tags.Exists((_tag) => _tag == tag)))
+            {
+                return;
+            }
+            AllTags.Remove(tag);
         }
     }
 }
