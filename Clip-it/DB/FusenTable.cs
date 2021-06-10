@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Diagnostics;
 using System.Collections.Generic;
+using System.Linq;
 using System.Data.SQLite;
 using ImGuiNET;
 
@@ -31,7 +32,7 @@ namespace Clip_it
             {
                 using (SQLiteCommand command = connection.CreateCommand())
                 {
-                    command.CommandText = "create table t_fusen(id TEXT PRIMARY KEY, text TEXT, opened TEXT, opened_text TEXT)";
+                    command.CommandText = "create table t_fusen(id TEXT PRIMARY KEY, text TEXT, opened TEXT, opened_text TEXT, tags TEXT)";
                     command.ExecuteNonQuery();
                 }
             }
@@ -64,17 +65,19 @@ namespace Clip_it
                     else
                     { 
                         // インサート
-                        cmd.CommandText = "REPLACE INTO t_fusen (id, text, opened, opened_text) VALUES (@Id, @Text, @Opened, @Opened_Text)";
+                        cmd.CommandText = "REPLACE INTO t_fusen (id, text, opened, opened_text, tags) VALUES (@Id, @Text, @Opened, @Opened_Text, @Tags)";
                         // パラメータセット
                         cmd.Parameters.Add("Id", System.Data.DbType.String);
                         cmd.Parameters.Add("Text", System.Data.DbType.String);
                         cmd.Parameters.Add("Opened", System.Data.DbType.String);
                         cmd.Parameters.Add("Opened_Text", System.Data.DbType.String);
+                        cmd.Parameters.Add("Tags", System.Data.DbType.String);
                         // データ追加
                         cmd.Parameters["Id"].Value = model.Id.ToString();
                         cmd.Parameters["Text"].Value = model.Text;
                         cmd.Parameters["Opened"].Value = model.Opened.ToString();
                         cmd.Parameters["Opened_Text"].Value = model.OpenedText.ToString();
+                        cmd.Parameters["Tags"].Value = string.Join(',', model.Tags);
                     }
                     cmd.ExecuteNonQuery();
 
@@ -108,6 +111,9 @@ namespace Clip_it
                         );
                     model.Opened = bool.Parse(reader["Opened"].ToString());
                     model.OpenedText = bool.Parse(reader["Opened_Text"].ToString());
+                    var hoge = reader["Tags"].ToString().Split(',').ToList();
+                    model.Tags = hoge;
+
                     result.Add(model);
                 }
             }

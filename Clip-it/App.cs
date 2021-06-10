@@ -86,6 +86,15 @@ namespace Clip_it
             {
                 fusens.Add(new Fusen(model, this));
             }
+            foreach (var fusen in fusens)
+            foreach( var tag in fusen.Model.Tags)
+            {
+                if (!AllTags.ContainsKey(tag))
+                {
+                    AllTags[tag] = false;
+                }
+            }
+
             // imgui.iniロード
             LayoutLoad(_layoutNo);
         }
