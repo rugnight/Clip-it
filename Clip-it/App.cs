@@ -179,8 +179,15 @@ namespace Clip_it
         /// </summary>
         void UpdateMainTagMenu()
         {
+            // 一旦全部折りたたむ
+            foreach (var fusen in fusens)
+            {
+                ImGui.SetWindowCollapsed(fusen.Model.Id.ToString(), true);
+            }
+
+            // ユーザー操作によるチェック状態の変化を監視
             int count = 0;
-            foreach(var key in AllTags.Keys)
+            foreach (var key in AllTags.Keys)
             {
                 bool isOn = AllTags[key];
                 if (ImGui.Checkbox(key, ref isOn))
@@ -188,12 +195,21 @@ namespace Clip_it
                     AllTags[key] = isOn;
                     break;
                 }
-
                 if (count < AllTags.Count - 1)
                 {
                     ImGui.SameLine();
                 }
                 count++;
+            }
+
+            // 表示状態を適用
+            foreach (var fusen in fusens)
+            {
+                bool bVisisble = AllTags.Any((pair) => fusen.Model.Tags.Contains(pair.Key) && pair.Value);
+                if (bVisisble)
+                {
+                    //ImGui.SetWindowCollapsed(fusen.Model.Id.ToString(), false);
+                }
             }
         }
 
@@ -378,15 +394,30 @@ namespace Clip_it
         {
             foreach (var fusen in fusens)
             {
-                if (AllTags.All((pair) => { return !pair.Value; }))
-                {
-                    fusen.Update();
-                }
-                else if (AllTags.Any((pair) => { return pair.Value && fusen.Model.Tags.Contains(pair.Key); }))
+                if (IsFusenFiltered(fusen, AllTags))
                 {
                     fusen.Update();
                 }
             }
+        }
+
+        /// <summary>
+        /// 付箋がタグの状態と照らし合わせて表示対象かどうかを判定
+        /// </summary>
+        /// <param name="fusen"></param>
+        /// <param name="tags"></param>
+        /// <returns></returns>
+        static bool IsFusenFiltered(Fusen fusen, Dictionary<string, bool> tags)
+        {
+            if (tags.All((pair) => { return !pair.Value; }))
+            {
+                return true;
+            }
+            else if (tags.Any((pair) => { return pair.Value && fusen.Model.Tags.Contains(pair.Key); }))
+            {
+                return true;
+            }
+            return false;
         }
 
         /// <summary>
@@ -407,6 +438,13 @@ namespace Clip_it
             for(int i = 0; i < fusens.Count; ++i)
             {
                 var fusen = fusens[i];
+
+                // フィルター済みならスキップ
+                if (!IsFusenFiltered(fusen, AllTags))
+                {
+                    continue;
+                }
+
                 var nextW = (i <= fusens.Count) ? fusens[i].LastSize.X : 0.0f;
 
                 y = yarray[rowUnit];
@@ -426,15 +464,12 @@ namespace Clip_it
                 }
 
                 x += fusen.LastSize.X + padX;
-                //maxH = (maxH < fusen.LastSize.Y) ? fusen.LastSize.Y : maxH;
 
                 if (_windowSize.X < (x + nextW))
                 {
                     x = padX;
                     rowUnit = 0;
-                    //maxH = 0.0f;
                 }
-
             }
         }
 

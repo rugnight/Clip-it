@@ -77,7 +77,8 @@ namespace Clip_it
                         cmd.Parameters["Text"].Value = model.Text;
                         cmd.Parameters["Opened"].Value = model.Opened.ToString();
                         cmd.Parameters["Opened_Text"].Value = model.OpenedText.ToString();
-                        cmd.Parameters["Tags"].Value = string.Join(',', model.Tags);
+                        model.Tags.RemoveAll((tag) => tag == "");
+                        cmd.Parameters["Tags"].Value = (model.Tags.Count == 0) ? "" : string.Join(',', model.Tags);
                     }
                     cmd.ExecuteNonQuery();
 
@@ -111,8 +112,9 @@ namespace Clip_it
                         );
                     model.Opened = bool.Parse(reader["Opened"].ToString());
                     model.OpenedText = bool.Parse(reader["Opened_Text"].ToString());
-                    var hoge = reader["Tags"].ToString().Split(',').ToList();
-                    model.Tags = hoge;
+                    var tags = reader["Tags"].ToString().Split(',').ToList();
+                    tags.RemoveAll((tag) => tag == "");
+                    model.Tags = tags;
 
                     result.Add(model);
                 }
