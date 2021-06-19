@@ -357,10 +357,10 @@ namespace Clip_it
         {
             fusens.Sort((a, b) =>
             {
-                int result = (int)(a.LastSize.Y - b.LastSize.Y);
+                int result = a.Model.Text.ToString().CompareTo(b.Model.Text.ToString());
                 if (result == 0)
                 {
-                    result = a.Model.Id.ToString().CompareTo(b.Model.Id.ToString());
+                    result = (int)(a.LastSize.Y - b.LastSize.Y);
                 }
                 return result;
             });

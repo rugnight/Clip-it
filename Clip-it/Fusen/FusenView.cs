@@ -101,17 +101,7 @@ namespace Clip_it
                 // 移動量を0に
                 Move = Vector2.Zero;
 
-                // CTRL+Vでクリップボード内部を追記
-                if (ImGui.GetIO().KeyCtrl && ImGui.IsKeyPressed(ImGui.GetKeyIndex(ImGuiKey.V), false) && ImGui.IsWindowFocused())
-                {
-                    var clipText = ImGui.GetClipboardText();
-                    if (clipText != null)
-                    {
-                        text += $"\n{clipText}";
-                        this.OnChangeText?.Invoke(text);
-                        OnChangeAndEditEnd?.Invoke();
-                    }
-                }
+                ProcShortcutKeys(model);
 
                 DispContext(model);
 
@@ -167,6 +157,36 @@ namespace Clip_it
         public void SetFocusInput()
         {
             _setFocusFrame = 2;
+        }
+
+        /// <summary>
+        /// ショートカットキーの処理
+        /// </summary>
+        void ProcShortcutKeys(FusenModel model)
+        {
+            // CTRL+Vでクリップボード内部を追記
+            if (ImGui.GetIO().KeyCtrl && ImGui.IsKeyPressed(ImGui.GetKeyIndex(ImGuiKey.V), false) && ImGui.IsWindowFocused())
+            {
+                var text = model.Text;
+                var clipText = ImGui.GetClipboardText();
+                if (clipText != null)
+                {
+                    if (ImGui.GetIO().KeyShift)
+                    {
+                        // SHIFT付きだと前方に追記
+                        text = $"{clipText}\n{text}";
+                        this.OnChangeText?.Invoke(text);
+                        OnChangeAndEditEnd?.Invoke();
+                    }
+                    else
+                    {
+                        // 後方に追記
+                        text = $"{text}\n{clipText}";
+                        this.OnChangeText?.Invoke(text);
+                        OnChangeAndEditEnd?.Invoke();
+                    }
+                }
+            }
         }
 
         /// <summary>
