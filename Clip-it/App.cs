@@ -355,7 +355,15 @@ namespace Clip_it
         /// </summary>
         void FusenSortUpdate()
         {
-            fusens.Sort((a, b) => (int)(a.LastSize.Y - b.LastSize.Y));
+            fusens.Sort((a, b) =>
+            {
+                int result = (int)(a.LastSize.Y - b.LastSize.Y);
+                if (result == 0)
+                {
+                    result = a.Model.Id.ToString().CompareTo(b.Model.Id.ToString());
+                }
+                return result;
+            });
 
             int colNum = (int)_windowSize.X / 350;
             float padX = 10;
