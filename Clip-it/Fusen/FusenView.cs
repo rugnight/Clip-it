@@ -101,6 +101,18 @@ namespace Clip_it
                 // 移動量を0に
                 Move = Vector2.Zero;
 
+                // CTRL+Vでクリップボード内部を追記
+                if (ImGui.GetIO().KeyCtrl && ImGui.IsKeyPressed(ImGui.GetKeyIndex(ImGuiKey.V), false) && ImGui.IsWindowFocused())
+                {
+                    var clipText = ImGui.GetClipboardText();
+                    if (clipText != null)
+                    {
+                        text += $"\n{clipText}";
+                        this.OnChangeText?.Invoke(text);
+                        OnChangeAndEditEnd?.Invoke();
+                    }
+                }
+
                 DispContext(model);
 
                 DispEditPopup(model);
