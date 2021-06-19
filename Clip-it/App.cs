@@ -591,7 +591,7 @@ namespace Clip_it
                 {
                     Texture texture;
                     IntPtr texId;
-                    CreateTexture(model.Uri.ToString(), ms, out texture, out texId);
+                    CreateTexture(model.Uri.AbsoluteUri, ms, out texture, out texId);
                     onComplete?.Invoke(texture, texId);
                 }
                 return;

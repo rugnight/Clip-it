@@ -254,7 +254,7 @@ namespace Clip_it
                             uri,
                             (texture, texId) =>
                             {
-                                this.Images[uri.ToString()] = new TextureInfo(texture, texId);
+                                this.Images[uri.AbsoluteUri] = new TextureInfo(texture, texId);
                             }
                             );
                         break;
