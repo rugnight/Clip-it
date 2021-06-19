@@ -281,15 +281,15 @@ namespace Clip_it
             // ESC
             if (ImGui.IsKeyPressed((int)Key.Escape, false))
             {
-                if (ImGui.IsAnyItemActive() || !ImGui.IsWindowFocused())
-                {
-                    // ウィンドウからフォーカスを外す
-                    ImGui.SetWindowFocus(null);
-                }
-                else
+                if (ImGui.IsWindowFocused())
                 {
                     // ツールを非表示に
                     _appEventHandler?.OnPushHide();
+                }
+                else
+                {
+                    // メインウィンドウへフォーカスを移す
+                    ImGui.SetWindowFocus(MAIN_WIN_NAME);
                 }
             }
 
