@@ -235,7 +235,14 @@ namespace Clip_it
                     }
                 }
 
-                if (ImGui.InputTextMultiline(
+                // Ctrl+Enter or ESC
+                if (ImGui.IsKeyPressed(ImGui.GetKeyIndex(ImGuiKey.Escape), false)
+                    || ImGui.GetIO().KeyCtrl && ImGui.IsKeyPressed(ImGui.GetKeyIndex(ImGuiKey.Enter), false))
+                {
+                    _bOpenPopup = false;
+                    OnChangeAndEditEnd?.Invoke();
+                }
+                else if (ImGui.InputTextMultiline(
                     "",
                     ref text,
                     1024,
@@ -246,11 +253,12 @@ namespace Clip_it
                     this.OnChangeText?.Invoke(text);
                 }
 
+
                 // フォーカス状態の監視
-                if (ImGui.IsItemDeactivatedAfterEdit())
-                {
-                    OnChangeAndEditEnd?.Invoke();
-                }
+                //if (ImGui.IsItemDeactivatedAfterEdit())
+                //{
+                //    OnChangeAndEditEnd?.Invoke();
+                //}
                 ImGui.EndPopup();
             }
         }
