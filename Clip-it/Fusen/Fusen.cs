@@ -55,6 +55,7 @@ namespace Clip_it
             set => _view.Move = value;
         }
         public int LastSizeUnit => _view.LastSizeUnit;
+        public string DisplayText { get; private set; } = "";
         public Dictionary<string, LinkModel> Urls { get; private set; } = new Dictionary<string, LinkModel>();
         public Dictionary<Uri, string> Paths { get; private set; } = new Dictionary<Uri, string>();
         public Dictionary<string, bool> Dates { get; private set; } = new Dictionary<string, bool>();
@@ -152,6 +153,10 @@ namespace Clip_it
         /// </summary>
         public void UpdateMetaData()
         {
+            // 表示テキスト
+            // URLなどが更新されると、URLを表示名に置き換えたものになる
+            DisplayText = this._model.Text;
+
             // 時刻
             var dates = this._model.GetDates();
             foreach (var date in dates)
@@ -219,11 +224,13 @@ namespace Clip_it
                     (webInfo) =>
                     {
                         this.Urls[url] = webInfo;
+                        DisplayText = DisplayText.Replace(url, webInfo.Title);
                         LoadImage(new UriBuilder(webInfo.OgImageUrl).Uri);
                     }
                 );
                 //LoadImage(url);
             }
+
         }
 
 

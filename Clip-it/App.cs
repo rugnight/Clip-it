@@ -114,18 +114,12 @@ namespace Clip_it
         /// 更新
         /// </summary>
         /// <returns></returns>
-
-        float x = 0;
-        float y = 0;
         public bool Update()
         {
             _bAlighn = false;
 
             // メインウィンドウ
             UpdateMainWindow();
-
-            // 付箋を移動
-            //FusenMove(ImGui.GetMouseDragDelta() * 1.0f);
 
             // 付箋を描画
             if (_bAlighn)
@@ -136,7 +130,6 @@ namespace Clip_it
             {
                 FusenUpdate();
             }
-            ImGui.EndTabItem();
 
             ImGui.ResetMouseDragDelta();
 
@@ -179,38 +172,35 @@ namespace Clip_it
         /// </summary>
         void UpdateMainTagMenu()
         {
-            // 一旦全部折りたたむ
-            foreach (var fusen in fusens)
-            {
-                ImGui.SetWindowCollapsed(fusen.Model.Id.ToString(), true);
-            }
-
             // ユーザー操作によるチェック状態の変化を監視
             int count = 0;
-            foreach (var key in AllTags.Keys)
+            if (ImGui.Begin("Tags"))
             {
-                bool isOn = AllTags[key];
-                if (ImGui.Checkbox(key, ref isOn))
+                foreach (var key in AllTags.Keys)
                 {
-                    AllTags[key] = isOn;
-                    break;
-                }
-                if (count < AllTags.Count - 1)
-                {
-                    ImGui.SameLine();
-                }
-                count++;
-            }
+                    bool isOn = AllTags[key];
+                    if (ImGui.Checkbox(key, ref isOn))
+                    {
+                        AllTags[key] = isOn;
+                        break;
+                    }
 
-            // 表示状態を適用
-            foreach (var fusen in fusens)
-            {
-                bool bVisisble = AllTags.Any((pair) => fusen.Model.Tags.Contains(pair.Key) && pair.Value);
-                if (bVisisble)
-                {
-                    //ImGui.SetWindowCollapsed(fusen.Model.Id.ToString(), false);
+                    if (ImGui.BeginPopupContextItem())
+                    {
+                        if (ImGui.MenuItem("削除"))
+                        {
+                        }
+                        ImGui.EndPopup();
+                    }
+
+                    if (count < AllTags.Count - 1)
+                    {
+                        ImGui.SameLine();
+                    }
+                    count++;
                 }
             }
+            ImGui.End();
         }
 
         /// <summary>
@@ -224,11 +214,6 @@ namespace Clip_it
                 {
                     _appEventHandler?.OnPushHide();
                 }
-
-                //if (ImGui.MenuItem("New", "CTRL+N"))
-                //{
-                //    CreateNewFusen();
-                //}
 
                 // レイアウト
                 for (int i = 1; i < 4 + 1; ++i)
@@ -248,14 +233,6 @@ namespace Clip_it
                     {
                         _bAlighn = true;
                     }
-                    //if (ImGui.MenuItem("Save", "CTRL+S"))
-                    //{
-                    //    LayoutSave();
-                    //}
-                    //if (ImGui.MenuItem("Load", "CTRL+L"))
-                    //{
-                    //    LayoutLoad();
-                    //}
                     ImGui.EndMenu();
                 }
 
@@ -263,12 +240,6 @@ namespace Clip_it
                 {
                     DeleteEmptyFusenAll();
                 }
-
-                //if (ImGui.BeginMenu("Tag"))
-                //{
-                //    ImGui.InputText("Tag", ref hoge, 512);
-                //    ImGui.EndMenu();
-                //}
 
                 if (ImGui.MenuItem("終了"))
                 {
@@ -327,16 +298,6 @@ namespace Clip_it
                 CreateNewFusen();
             }
 
-            //if (io.KeyCtrl && ImGui.IsKeyPressed((int)Key.S, false))
-            //{
-            //    LayoutSave();
-            //}
-
-            //if (io.KeyCtrl && ImGui.IsKeyPressed((int)Key.L, false))
-            //{
-            //    LayoutLoad();
-            //}
-
             // 整列
             if (io.KeyCtrl && ImGui.IsKeyPressed((int)Key.A, false) && !ImGui.IsPopupOpen(FusenView.EDIT_POPUP_NAME, ImGuiPopupFlags.AnyPopup))
             {
@@ -376,18 +337,6 @@ namespace Clip_it
         }
 
         /// <summary>
-        /// 付箋の移動
-        /// </summary>
-        void FusenMove(Vector2 move)
-        {
-            foreach (var fusen in fusens)
-            {
-                fusen.Move = move;
-            }
-        }
-
-
-        /// <summary>
         /// 付箋の更新・描画
         /// </summary>
         void FusenUpdate()
@@ -399,25 +348,6 @@ namespace Clip_it
                     fusen.Update();
                 }
             }
-        }
-
-        /// <summary>
-        /// 付箋がタグの状態と照らし合わせて表示対象かどうかを判定
-        /// </summary>
-        /// <param name="fusen"></param>
-        /// <param name="tags"></param>
-        /// <returns></returns>
-        static bool IsFusenFiltered(Fusen fusen, Dictionary<string, bool> tags)
-        {
-            if (tags.All((pair) => { return !pair.Value; }))
-            {
-                return true;
-            }
-            else if (tags.Any((pair) => { return pair.Value && fusen.Model.Tags.Contains(pair.Key); }))
-            {
-                return true;
-            }
-            return false;
         }
 
         /// <summary>
@@ -788,5 +718,25 @@ namespace Clip_it
             }
             AllTags.Remove(tag);
         }
+
+        /// <summary>
+        /// 付箋がタグの状態と照らし合わせて表示対象かどうかを判定
+        /// </summary>
+        /// <param name="fusen"></param>
+        /// <param name="tags"></param>
+        /// <returns></returns>
+        static bool IsFusenFiltered(Fusen fusen, Dictionary<string, bool> tags)
+        {
+            if (tags.All((pair) => { return !pair.Value; }))
+            {
+                return true;
+            }
+            else if (tags.Any((pair) => { return pair.Value && fusen.Model.Tags.Contains(pair.Key); }))
+            {
+                return true;
+            }
+            return false;
+        }
+
     }
 }

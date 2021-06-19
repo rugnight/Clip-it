@@ -92,7 +92,7 @@ namespace Clip_it
             // 大量のスペースはタイトルバーにIDを表示しないため
             // 改行は ini ファイルが機能しなくなるため入れてはいけない
             //if (ImGui.Begin($"{model.Id.ToString()}".PadLeft('_'), ref _bEnableWindow, windowsFlags))
-            if (ImGui.Begin($"{model.Id.ToString()}".PadLeft('_'), ref _bEnableWindow, windowsFlags))
+            if (ImGui.Begin(model.Id.ToString(), ref _bEnableWindow, windowsFlags))
             {
                 // ウィンドウの移動
                 ImGui.SetWindowPos(ImGui.GetWindowPos() + Move);
@@ -103,7 +103,7 @@ namespace Clip_it
                 DispContext(model);
 
                 DispEditPopup(model);
-                DispText(model, w);
+                DispText(fusen, w);
 
                 ImGui.Spacing();
                 DispDateButtons(fusen, w);
@@ -256,8 +256,9 @@ namespace Clip_it
         /// 本文の表示
         /// </summary>
         /// <param name="text"></param>
-        void DispText(FusenModel model, float width)
+        void DispText(Fusen fusen, float width)
         {
+            var model = fusen.Model;
             var text = model.Text;
             var flags = ImGuiTreeNodeFlags.None;
             // 初回起動時に前回の開閉状態を再現する
@@ -269,7 +270,7 @@ namespace Clip_it
             // ヘッダのタイトルは空文字だとテキストボックス編集ができなくなるので
             // 内容が空のときは空白を入れておく
             var title = (0 < text.Length) ? text.Substring(0, Math.Min(text.Length, MEMO_HEADER_TEXT_COUNT)) : " ";
-            ImGui.TextWrapped(text);
+            ImGui.TextWrapped(fusen.DisplayText);
         }
 
         /// <summary>
