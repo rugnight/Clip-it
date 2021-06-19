@@ -198,7 +198,7 @@ namespace Clip_it
         void DispEditPopup(FusenModel model)
         {
             var w = _parentWindowSize.X;// * 0.8f;
-            var h = _parentWindowSize.Y;// * 0.8f;
+            var h = 300;// * 0.8f;
 
             var text = model.Text;
             // 本文をダブルクリックしたら編集ダイアログを出す
@@ -222,6 +222,8 @@ namespace Clip_it
                 ref _bOpenPopup, 
                 ImGuiWindowFlags.AlwaysAutoResize | ImGuiWindowFlags.NoResize | ImGuiWindowFlags.NoCollapse))
             {
+                ImGui.SetWindowSize(new Vector2(w, h));
+
                 // フォーカス設定フラグが立っていたら、テキストボックスにフォーカスする
                 if (0 < _setFocusFrame)
                 {
@@ -236,7 +238,7 @@ namespace Clip_it
                     "",
                     ref text,
                     1024,
-                    _parentWindowSize,
+                    new Vector2(w, h),
                     ImGuiInputTextFlags.None
                     ))
                 {
