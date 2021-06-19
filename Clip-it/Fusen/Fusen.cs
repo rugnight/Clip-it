@@ -205,6 +205,8 @@ namespace Clip_it
                     continue;
                 }
                 this.Paths[path] = item;
+                // 表示テキストにはファイル名を
+                DisplayText = DisplayText.Replace(path.LocalPath, item);
             }
 
             // URL
@@ -228,7 +230,6 @@ namespace Clip_it
                         LoadImage(new UriBuilder(webInfo.OgImageUrl).Uri);
                     }
                 );
-                //LoadImage(url);
             }
 
         }
