@@ -194,7 +194,8 @@ namespace Clip_it
                 }
                 else if (System.IO.Directory.Exists(path.LocalPath))
                 {
-                    item = path.LocalPath;
+                    //item = path.LocalPath;
+                    item = System.IO.Path.GetFileName(path.LocalPath);
                 }
                 else
                 {

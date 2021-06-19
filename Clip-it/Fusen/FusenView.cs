@@ -14,7 +14,7 @@ namespace Clip_it
         // 本文入力の幅
         const float INPUT_WIDTH = 300.0f;
         const float IMAGE_H = 100.0f;
-        const float NO_IMAGE_H = 50.0f;
+        const float NO_IMAGE_H = 30.0f;
 
         // メモのヘッダー部分に表示する文字数
         const int MEMO_HEADER_TEXT_COUNT = 30;
@@ -367,26 +367,36 @@ namespace Clip_it
                 else
                 {
                     var h = NO_IMAGE_H;
-                    var w = NO_IMAGE_H;
+                    var w = windowWidth;
 
-                    if (System.IO.File.Exists(pair.Key.LocalPath) || System.IO.Directory.Exists(pair.Key.LocalPath))
+                    var path = pair.Key.LocalPath;
+                    if (System.IO.Directory.Exists(path))
                     {
-                        if (ImGui.Button("開く", new Vector2(w, h)))
+                        //var dirName = System.IO.Path.GetDirectoryName(path);
+                        var dirName = System.IO.Path.GetFileName(path);
+                        if (ImGui.Button(dirName, new Vector2(w, h)))
+                        {
+                            isClicked |= true;
+                        }
+                    }
+                    else if (System.IO.File.Exists(path))
+                    {
+                        if (ImGui.Button(System.IO.Path.GetFileName(path), new Vector2(w, h)))
                         {
                             isClicked |= true;
                         }
                     }
                     else
                     {
-                        if (ImGui.InvisibleButton("開く", new Vector2(w, h)))
+                        if (ImGui.Button("開く", new Vector2(w, h)))
                         {
                             //isClicked |= true;
                         }
                     }
-                    ImGui.SameLine();
+                    //ImGui.SameLine();
 
-                    ImGui.TextWrapped(title);
-                    isClicked |= (ImGui.IsItemClicked() && ImGui.IsMouseDoubleClicked(ImGuiMouseButton.Left));
+                    //ImGui.TextWrapped(title);
+                    //isClicked |= (ImGui.IsItemClicked() && ImGui.IsMouseDoubleClicked(ImGuiMouseButton.Left));
                 }
 
                 if (isClicked)
