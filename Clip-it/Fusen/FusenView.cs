@@ -75,7 +75,7 @@ namespace Clip_it
             var windowsFlags = ImGuiWindowFlags.AlwaysAutoResize 
                 | ImGuiWindowFlags.NoCollapse 
                 | ImGuiWindowFlags.NoFocusOnAppearing 
-                | ImGuiWindowFlags.NoDecoration;
+                | ImGuiWindowFlags.NoTitleBar;
 
             if (!_bEnableWindow)
             {
@@ -87,7 +87,8 @@ namespace Clip_it
 
             // ウィンドウサイズの設定
             var w = INPUT_WIDTH + 30;
-            ImGui.SetNextWindowSizeConstraints(new Vector2(w, 100), new Vector2(w, float.MaxValue));
+            var h = 500;
+            ImGui.SetNextWindowSizeConstraints(new Vector2(w, 100), new Vector2(w, h));
 
             // 大量のスペースはタイトルバーにIDを表示しないため
             // 改行は ini ファイルが機能しなくなるため入れてはいけない
